@@ -37,10 +37,10 @@ pub fn resize_target(
                 "Logical Window: {}*{}\n",
                 e.width, e.height,
             );
-            text.sections[2].value = format!(
-                "pixel shader: {:.2}\n",
-                new_pixel_size,
-            )
+            // text.sections[2].value = format!(
+            //     "pixel shader: {:.2}\n",
+            //     new_pixel_size,
+            // )
         }
         let size = Extent3d {
             width: e.width as u32,

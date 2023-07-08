@@ -1,3 +1,10 @@
+#![allow(
+    clippy::type_complexity,
+    clippy::manual_clamp,
+    clippy::module_inception
+)]
+
+
 use bevy::{
     prelude::*,
     sprite::{
@@ -8,24 +15,20 @@ use bevy::{
         FrameTimeDiagnosticsPlugin
     }, pbr::wireframe::WireframePlugin, app::AppExit,
 };
-// use bevy_embedded_assets::EmbeddedAssetPlugin;
+use bevy_embedded_assets::EmbeddedAssetPlugin;
+use components::player_camera::PlayerCamera;
+use voxel::player::PlayerSettings;
+
+use std::f32::consts::PI;
+
+use bevy::{core_pipeline::fxaa::Fxaa, prelude::*};
 
 mod components;
 mod systems;
 mod materials;
 mod resources;
-use resources::user_settings::{PlayerInput, PlayerSettings};
-use systems::{
-    setup::setup,
-    setup_debug_text::setup_debug_text,
-    player_input::{
-        init_input,
-        player_input, grab_cursor
-    },
-    update_debug_text::update_debug_text,
-    rotate::rotate,
-    resize_target::resize_target
-};
+mod debug;
+mod voxel;
 
 use crate::materials::pixelate::PixelateMaterial;
 
@@ -33,21 +36,12 @@ use bevy_asset_loader::prelude::*;
 use iyes_progress::{ProgressCounter, ProgressPlugin};
 
 fn main() {
-    App::new()
-        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
-        .add_state::<GameState>()
-        .add_loading_state(
-            LoadingState::new(GameState::AssetLoading)
-                .continue_to_state(GameState::Game)
-                .on_failure_continue_to_state(GameState::AssetError)
-        )
-        .add_collection_to_loading_state::<_, MyAssets>(GameState::AssetLoading)
-        .init_resource::<PlayerInput>()
-        .init_resource::<PlayerSettings>()
+    let mut app = App::default();
+    app
         .add_plugins(DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    title: "Worldgen".to_string(),
+                    title: "World Gen".to_string(),
                     present_mode: bevy::window::PresentMode::AutoNoVsync,
                     ..default()
                 }),
@@ -59,27 +53,63 @@ fn main() {
             //     ..default()
             // })
         )
-        // .build()
-        // .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin))
-        .add_plugin(Material2dPlugin::<PixelateMaterial>::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::Game))
-        .add_plugin(WireframePlugin)
-        .add_startup_system(setup_boot_screen)
-        // .add_system(print_progress.in_set(OnUpdate(GameState::AssetLoading)))
-        .add_system(asset_error.in_schedule(OnEnter(GameState::AssetError)))
-        .add_system(setup.in_schedule(OnEnter(GameState::Game)))
-        .add_system(setup_debug_text.in_schedule(OnEnter(GameState::Game)))
-        .add_system(init_input.in_schedule(OnEnter(GameState::Game)))
-        // .add_system(configure_gamepad.in_schedule(OnEnter(GameState::Game)))
-        .add_system(update_debug_text.in_set(OnUpdate(GameState::Game)))
-        .add_system(player_input.in_set(OnUpdate(GameState::Game)))
-        .add_system(grab_cursor.in_set(OnUpdate(GameState::Game)))
-        .add_system(resize_target.in_set(OnUpdate(GameState::Game)))
-        .add_system(rotate.in_set(OnUpdate(GameState::Game)))
-        .add_system(print_progress)
+        .init_resource::<PlayerSettings>()
+        .add_plugin(voxel::VoxelWorldPlugin)
+        .add_plugin(debug::DebugUIPlugins)
+        .add_startup_system(setup)
+        // .add_system(update_camera_settings.after(setup))
         .run();
 }
+
+
+// fn main() {
+//     App::new()
+//         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+//         .add_state::<GameState>()
+//         .add_loading_state(
+//             LoadingState::new(GameState::AssetLoading)
+//                 .continue_to_state(GameState::Game)
+//                 .on_failure_continue_to_state(GameState::AssetError)
+//         )
+//         .add_collection_to_loading_state::<_, MyAssets>(GameState::AssetLoading)
+//         .init_resource::<PlayerInput>()
+//         .init_resource::<PlayerSettings>()
+//         .add_plugins(DefaultPlugins
+//             .set(WindowPlugin {
+//                 primary_window: Some(Window {
+//                     title: "Worldgen".to_string(),
+//                     present_mode: bevy::window::PresentMode::AutoNoVsync,
+//                     ..default()
+//                 }),
+//                 ..default()
+//             })
+//             .set(ImagePlugin::default_nearest())
+//             // .set(AssetPlugin {
+//             //     watch_for_changes: true,
+//             //     ..default()
+//             // })
+//         )
+//         // .build()
+//         // .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin))
+//         .add_plugin(Material2dPlugin::<PixelateMaterial>::default())
+//         .add_plugin(FrameTimeDiagnosticsPlugin::default())
+//         .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::Game))
+//         .add_plugin(WireframePlugin)
+//         .add_startup_system(setup_boot_screen)
+//         // .add_system(print_progress.in_set(OnUpdate(GameState::AssetLoading)))
+//         .add_system(asset_error.in_schedule(OnEnter(GameState::AssetError)))
+//         .add_system(setup.in_schedule(OnEnter(GameState::Game)))
+//         .add_system(setup_debug_text.in_schedule(OnEnter(GameState::Game)))
+//         .add_system(init_input.in_schedule(OnEnter(GameState::Game)))
+//         // .add_system(configure_gamepad.in_schedule(OnEnter(GameState::Game)))
+//         .add_system(update_debug_text.in_set(OnUpdate(GameState::Game)))
+//         .add_system(player_input.in_set(OnUpdate(GameState::Game)))
+//         .add_system(grab_cursor.in_set(OnUpdate(GameState::Game)))
+//         .add_system(resize_target.in_set(OnUpdate(GameState::Game)))
+//         .add_system(rotate.in_set(OnUpdate(GameState::Game)))
+//         .add_system(print_progress)
+//         .run();
+// }
 
 #[derive(AssetCollection, Resource)]
 pub struct MyAssets {
@@ -186,4 +216,28 @@ fn setup_boot_screen(
     StartText,
     ProgressText,
     ));
+}
+
+
+fn setup(
+    settings: Res<PlayerSettings>,
+    mut cmds: Commands
+) {
+    cmds.spawn(Camera3dBundle {
+        projection: bevy::prelude::Projection::Perspective(PerspectiveProjection {
+            fov: settings.fov.to_radians(),
+            far: 2048.0,
+            ..Default::default()
+        }),
+        transform: Transform::from_xyz(2.0, 180.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ..Default::default()
+    })
+    .insert(voxel::player::PlayerController::default())
+    .insert(Fxaa::default())
+    .insert(bevy_atmosphere::plugin::AtmosphereCamera::default());
+
+    cmds.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: 1.0,
+    });
 }

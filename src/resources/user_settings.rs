@@ -24,10 +24,10 @@ impl Default for PlayerSettings {
         Self {
             fov: 80f32.to_radians(),
             mouse_sensitivity: 0.00012,
-            speed: 4.,
+            speed: 3.,
             use_gamepad: false,
             gamepad:  None,
-            gamepad_sensitivity: 0.0008,
+            gamepad_sensitivity: 0.1,
         }
     }
 }

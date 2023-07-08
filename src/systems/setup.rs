@@ -10,9 +10,10 @@ use bevy::{
             Indices,
             PrimitiveTopology,
         },
-        camera::{
-            RenderTarget,
-        },
+        // Uncomment to re-enable post processing shader layer
+        // camera::{
+        //     RenderTarget,
+        // },
         render_resource::{
             AddressMode,
             SamplerDescriptor,
@@ -143,7 +144,7 @@ pub fn setup(
         base_color_texture: Some(panel.clone()),
         normal_map_texture: Some(panel2.clone()),
         flip_normal_map_y: true,
-        alpha_mode: AlphaMode::Blend,
+        alpha_mode: AlphaMode::Opaque,
         ..default()
     });
 
@@ -258,15 +259,38 @@ pub fn setup(
 
     let mut _tangents = mesh.generate_tangents();
 
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(mesh),
-            material: material_handle,
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..default()
-        },
-        Wireframe,
-    ));
+
+    // commands.spawn((
+    //     PbrBundle {
+    //         mesh: meshes.add(mesh),
+    //         material: material_handle,
+    //         transform: Transform::from_xyz(0.0, 0.0, 0.0),
+    //         ..default()
+    //     },
+    //     Wireframe,
+    // ));
+
+    // creates a 10x10x10 cube of cubes
+
+    for x in 0..40 {
+        for y in 0..1 {
+            for z in 0..40 {
+                commands.spawn((
+                    PbrBundle {
+                        mesh: meshes.add(mesh.clone()),
+                        // material: materials.add(StandardMaterial {
+                        //     base_color: Color::rgb(0.0, 0.0, 0.0),
+                        //     ..default()
+                        // }),
+                        material: material_handle.clone(),
+                        transform: Transform::from_xyz(x as f32, y as f32, z as f32),
+                        ..default()
+                    },
+                    Wireframe,
+                ));
+            }
+        }
+    }
 
     commands.spawn((
         PointLightBundle {
@@ -289,9 +313,12 @@ pub fn setup(
                 ..default()
             },
             camera: Camera {
-                target: RenderTarget::Image(image_handle.clone()),
+                // Uncomment to re-enable post processing shader layer
+                // target: RenderTarget::Image(image_handle.clone()),
+                order: 1,
                 ..default()
             },
+            
             projection: Projection::Perspective(PerspectiveProjection {
                 fov: settings.fov,
                 near: 0.01,
@@ -301,7 +328,7 @@ pub fn setup(
             transform: Transform::from_xyz(0.0, 0.0, 2.0).looking_at(Vec3::new(0., 1., 0.), Vec3::Y),
             ..default()
         },
-        UiCameraConfig { show_ui: false },
+        // UiCameraConfig { show_ui: false },
         PlayerCamera,
     ));
 
@@ -309,7 +336,7 @@ pub fn setup(
     
     let material_handle = post_processing_materials.add(PixelateMaterial {
         source_image: image_handle,
-        pixelsize: Vec2::new(1.0, 1.0),
+        pixelsize: Vec2::new(0.1, 0.1),
     });
 
     let quad_handle = meshes.add(Mesh::from(shape::Quad::new(Vec2::new(
@@ -333,14 +360,15 @@ pub fn setup(
         post_processing_pass_layer,
     ));
 
-    commands.spawn((
-        Camera2dBundle {
-            camera: Camera {
-                order: 1,
-                ..default()
-            },
-            ..Camera2dBundle::default()
-        },
-        post_processing_pass_layer,
-    ));
+    // Uncomment to re-enable post processing shader layer
+    // commands.spawn((
+    //     Camera2dBundle {
+    //         camera: Camera {
+    //             order: 1,
+    //             ..default()
+    //         },
+    //         ..Camera2dBundle::default()
+    //     },
+    //     post_processing_pass_layer,
+    // ));
 }
