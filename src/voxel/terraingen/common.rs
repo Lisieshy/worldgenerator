@@ -23,7 +23,7 @@ pub fn terrain_generate_world_bottom_border(buffer: &mut VoxelBuffer<Voxel, Chun
 pub fn terrain_carve_heightmap(
     buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     key: IVec3,
-    heighmap: &Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
+    heightmap: &Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
 ) {
     // drown the terrain under sea level.
     // if key.y <= 96 {
@@ -37,7 +37,7 @@ pub fn terrain_carve_heightmap(
     Extent::from_min_and_shape(UVec2::ZERO, UVec2::new(CHUNK_LENGTH, CHUNK_LENGTH))
         .iter2()
         .for_each(|pos| {
-            let local_height = heighmap
+            let local_height = heightmap
                 .get(pos.into())
                 .checked_sub(key.y as u32)
                 .unwrap_or_default()

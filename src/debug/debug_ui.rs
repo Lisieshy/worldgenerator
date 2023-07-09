@@ -3,7 +3,7 @@ use bevy::{
     input::{keyboard::KeyboardInput, ButtonState},
     prelude::{
         Color, CoreSet, EventReader, IntoSystemConfig, IntoSystemConfigs, IntoSystemSetConfigs,
-        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, PerspectiveProjection, With, Quat,
+        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat,
     },
 };
 use bevy_egui::{
@@ -78,8 +78,6 @@ fn display_player_settings(
         ui.add(Slider::new(&mut settings.fov, 30.0..=120.0f32));
         ui.label(format!("Camera yaw: {}", controller.yaw.to_degrees()));
         ui.label(format!("Camera pitch: {}", controller.pitch.to_degrees()));
-        // ui.label(format!("Camera direction: {:?}", direction));
-        ui.label(format!("Camera endpoint: {:?}", endpoint));
     });
 
     lines.line_colored(

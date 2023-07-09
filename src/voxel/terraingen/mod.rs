@@ -2,7 +2,7 @@ use float_ord::FloatOrd;
 use std::{collections::BTreeMap, sync::RwLock};
 
 use bevy::{
-    math::{IVec3, Vec3Swizzles},
+    math::{IVec3, Vec3Swizzles, Vec2},
     prelude::Plugin,
 };
 use once_cell::sync::Lazy;
@@ -13,7 +13,7 @@ use self::{
     noise::{generate_heightmap_data, Heightmap},
 };
 
-use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U};
+use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH};
 
 mod biomes;
 
@@ -31,6 +31,8 @@ pub struct TerrainGenerator {
     biomes_map: BTreeMap<FloatOrd<f32>, Box<dyn BiomeTerrainGenerator>>,
 }
 
+const BIOME_INVSCALE: f32 = 0.005;
+
 impl TerrainGenerator {
     pub fn register_biome_generator(
         &mut self,
@@ -43,9 +45,7 @@ impl TerrainGenerator {
 
     //returns the biome with the closest temp / humidity
     #[allow(clippy::borrowed_box)]
-    fn biome_at(&self, chunk_key: IVec3) -> &Box<dyn BiomeTerrainGenerator> {
-        const BIOME_INVSCALE: f32 = 0.001;
-
+    fn biome_at_chunk(&self, chunk_key: IVec3) -> &Box<dyn BiomeTerrainGenerator> {
         let coords = noise::voronoi(chunk_key.xzy().truncate().as_vec2() * BIOME_INVSCALE);
         let p = FloatOrd(noise::rand2to1i(coords));
 
@@ -55,15 +55,35 @@ impl TerrainGenerator {
             .map_or(self.biomes_map.first_key_value().unwrap().1, |x| x.1)
     }
 
+    #[allow(clippy::borrowed_box)]
+    fn biome_at_xz(&self, x: i32, y: i32) -> &Box<dyn BiomeTerrainGenerator> {
+        let coords = noise::voronoi(Vec2::new(x as f32, y as f32) * BIOME_INVSCALE);
+        let p = FloatOrd(noise::rand2to1i(coords));
+
+        self.biomes_map
+            .range(..=p)
+            .last()
+            .map_or(self.biomes_map.first_key_value().unwrap().1, |x| x.1)
+    }
+
     pub fn generate(&self, chunk_key: IVec3, buffer: &mut VoxelBuffer<Voxel, ChunkShape>) {
-        let biome = self.biome_at(chunk_key);
+        // let biome = self.biome_at(chunk_key);
+
+        if chunk_key.x != 0 {
         let noise = generate_heightmap_data(chunk_key, CHUNK_LENGTH_U);
-
         let noise_map = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&noise);
-
         common::terrain_carve_heightmap(buffer, chunk_key, &noise_map);
 
-        biome.carve_terrain(chunk_key, noise_map, buffer);
+        for x in 0..CHUNK_LENGTH {
+            for z in 0..CHUNK_LENGTH {
+                let biome = self.biome_at_xz(x as i32 + chunk_key.x, z as i32 + chunk_key.z);
+                biome.carve_terrain_at_xz(chunk_key, x, z, noise_map, buffer);
+            }
+        }
+
+        // biome.carve_terrain(chunk_key, noise_map, buffer);
+        }
+
         // biome.decorate_terrain(chunk_key, noise_map, buffer);
 
         if chunk_key.y == 0 {

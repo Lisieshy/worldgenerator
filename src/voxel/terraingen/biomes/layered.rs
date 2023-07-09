@@ -63,6 +63,29 @@ impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
             });
     }
 
+    fn carve_terrain_at_xz(
+        &self,
+        chunk_key: IVec3,
+        x: u32,
+        z: u32,
+        heightmap: Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
+        buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
+    ) {
+        let height = heightmap.get([x as u32, z as u32].into());
+        // we only want to apply surface layer decoration on top of the surface chunk
+        if height.div(CHUNK_LENGTH) == (chunk_key.y as u32).div(CHUNK_LENGTH) {
+            let local_height = height.rem_euclid(CHUNK_LENGTH);
+
+            for h in 0..=self.num_layers() {
+                let remaining_height = local_height.checked_sub(h);
+
+                if let Some(uh) = remaining_height {
+                    *buffer.voxel_at_mut([x, uh as u32, z].into()) = self.fill_strata(h)
+                }
+            }
+        }
+    }
+
     fn decorate_terrain(
         &self,
         chunk_key: IVec3,

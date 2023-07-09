@@ -2,7 +2,7 @@ use bevy::{
     math::IVec3,
     prelude::{
         Changed, Commands, CoreSet, Entity, GlobalTransform, IntoSystemConfig, IntoSystemConfigs,
-        IntoSystemSetConfig, Plugin, Query, Res, ResMut, Resource, SystemSet, With, Vec3, info,
+        IntoSystemSetConfig, Plugin, Query, Res, ResMut, Resource, SystemSet, With, Vec3,
     },
     utils::{HashMap, HashSet},
 };
@@ -18,12 +18,8 @@ fn update_player_pos(
     mut chunk_pos: ResMut<CurrentLocalPlayerChunk>,
 ) {
     if let Ok(ply) = player.get_single() {
-        // let player_coords = ply.translation().as_ivec3();
-        // let nearest_chunk_origin = !IVec3::splat((CHUNK_LENGTH - 1) as i32) & player_coords;
         let player_coords = ply.translation();
-        // let nearest_chunk_origin_old = !IVec3::splat((CHUNK_LENGTH - 1) as i32) & player_coords.as_ivec3();
 
-        // let nearest_chunk_origin = Vec3::new(player_coords.x % CHUNK_LENGTH as f32, player_coords.y % CHUNK_LENGTH as f32, player_coords.z % CHUNK_LENGTH as f32);
         let nearest_chunk_origin = Vec3::new(
             player_coords.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
             player_coords.y.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
@@ -32,9 +28,7 @@ fn update_player_pos(
 
         chunk_pos.world_pos = player_coords;
         if chunk_pos.chunk_min != nearest_chunk_origin.as_ivec3() {
-            // info!("nearest chunk origin old: {:?}", nearest_chunk_origin_old);
-            // info!("nearest chunk origin modulo: {:?}", nearest_chunk_origin);
-            // info!("player pos: {:?}", player_coords);
+
             chunk_pos.chunk_min = nearest_chunk_origin.as_ivec3();
         }
     }
@@ -64,7 +58,7 @@ fn update_view_chunks(
                             z * CHUNK_LENGTH as i32,
                         );
 
-                    // pos.y = pos.y.max(0);
+                    pos.y = pos.y.max(0);
 
                     pos
                 };
@@ -213,7 +207,7 @@ impl Plugin for VoxelWorldChunkingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource::<ChunkLoadRadius>(ChunkLoadRadius {
             horizontal: 8,
-            vertical: 2,
+            vertical: 4,
         })
         .init_resource::<ChunkEntities>()
         .insert_resource(CurrentLocalPlayerChunk {
