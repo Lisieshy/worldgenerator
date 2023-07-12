@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, hash::Hash};
 use bevy::{math::IVec3, prelude::Resource};
 use ndshape::Shape;
 
-use crate::voxel::CHUNK_LENGTH;
+use crate::voxel::{CHUNK_LENGTH, CHUNK_HEIGHT};
 
 use super::buffer::VoxelBuffer;
 
@@ -36,22 +36,31 @@ where
 
     pub fn voxel_at(&self, pos: IVec3) -> Option<V> {
         let chunk_minimum = pos & self.shape_mask;
-        let local_minimum = ilattice::glam::IVec3::from(pos.to_array())
-            .map(|x| x.rem_euclid(CHUNK_LENGTH as i32))
-            .as_uvec3();
+        // let local_minimum = ilattice::glam::IVec3::from(pos.to_array());
+        //     .map(|x| x.rem_euclid(CHUNK_LENGTH as i32))
+        //     .as_uvec3();
+        let mut local_minimum = ilattice::glam::IVec3::from(pos.to_array());
+        local_minimum.x = local_minimum.x.rem_euclid(CHUNK_LENGTH as i32);
+        local_minimum.y = local_minimum.y.rem_euclid(CHUNK_HEIGHT as i32);
+        local_minimum.z = local_minimum.z.rem_euclid(CHUNK_LENGTH as i32);
 
         self.buffer_at(chunk_minimum)
-            .map(|buffer| buffer.voxel_at(local_minimum))
+            .map(|buffer| buffer.voxel_at(local_minimum.as_uvec3()))
     }
 
     pub fn voxel_at_mut(&mut self, pos: IVec3) -> Option<&mut V> {
         let chunk_minimum = pos & self.shape_mask;
-        let local_minimum = ilattice::glam::IVec3::from(pos.to_array())
-            .map(|x| x.rem_euclid(CHUNK_LENGTH as i32))
-            .as_uvec3();
+        // let local_minimum = ilattice::glam::IVec3::from(pos.to_array())
+        //     .map(|x| x.rem_euclid(CHUNK_LENGTH as i32))
+        //     .as_uvec3();
+        let mut local_minimum = ilattice::glam::IVec3::from(pos.to_array());
+        local_minimum.x = local_minimum.x.rem_euclid(CHUNK_LENGTH as i32);
+        local_minimum.y = local_minimum.y.rem_euclid(CHUNK_HEIGHT as i32);
+        local_minimum.z = local_minimum.z.rem_euclid(CHUNK_LENGTH as i32);
+
 
         self.buffer_at_mut(chunk_minimum)
-            .map(|buffer| buffer.voxel_at_mut(local_minimum))
+            .map(|buffer| buffer.voxel_at_mut(local_minimum.as_uvec3()))
     }
 
     /// Checks whether there's a buffer at the specified minimum.

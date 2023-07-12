@@ -15,7 +15,7 @@ use self::{
 
 use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH};
 
-mod biomes;
+pub mod biomes;
 
 /// noise functions ported over from C / GLSL code
 pub mod noise;
@@ -45,7 +45,7 @@ impl TerrainGenerator {
 
     //returns the biome with the closest temp / humidity
     #[allow(clippy::borrowed_box)]
-    fn biome_at_chunk(&self, chunk_key: IVec3) -> &Box<dyn BiomeTerrainGenerator> {
+    pub fn biome_at_chunk(&self, chunk_key: IVec3) -> &Box<dyn BiomeTerrainGenerator> {
         let coords = noise::voronoi(chunk_key.xzy().truncate().as_vec2() * BIOME_INVSCALE);
         let p = FloatOrd(noise::rand2to1i(coords));
 
@@ -56,7 +56,7 @@ impl TerrainGenerator {
     }
 
     #[allow(clippy::borrowed_box)]
-    fn biome_at_xz(&self, x: i32, y: i32) -> &Box<dyn BiomeTerrainGenerator> {
+    pub fn biome_at_xz(&self, x: i32, y: i32) -> &Box<dyn BiomeTerrainGenerator> {
         let coords = noise::voronoi(Vec2::new(x as f32, y as f32) * BIOME_INVSCALE);
         let p = FloatOrd(noise::rand2to1i(coords));
 

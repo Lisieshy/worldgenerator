@@ -41,8 +41,10 @@ impl Plugin for VoxelWorldPlugin {
 }
 
 pub const CHUNK_LENGTH: u32 = 64;
+pub const CHUNK_HEIGHT: u32 = 256;
 pub const CHUNK_LENGTH_U: usize = CHUNK_LENGTH as usize;
-pub type ChunkShape = ConstShape3u32<CHUNK_LENGTH, CHUNK_LENGTH, CHUNK_LENGTH>;
+pub const CHUNK_HEIGHT_U: usize = CHUNK_HEIGHT as usize;
+pub type ChunkShape = ConstShape3u32<CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH>;
 
 // A component tagging an entity as a chunk.
 #[derive(Component)]

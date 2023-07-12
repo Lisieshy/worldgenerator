@@ -37,4 +37,8 @@ impl LayeredBiomeTerrainGenerator for BasicSnowyPlainsBiomeTerrainGenerator {
             make_pine_tree::<PineWood, PineLeaves>(buffer, ILUVec3::from(pos.to_array()));
         }
     }
+
+    fn get_name(&self) -> &'static str {
+        "Snowy Plains"
+    }
 }

@@ -16,7 +16,7 @@ use bevy_prototype_debug_lines::*;
 use crate::{voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
-    CHUNK_LENGTH, player::{PlayerSettings, PlayerController},
+    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{noise::{generate_heightmap_data, Heightmap}, TERRAIN_GENERATOR, self, biomes::{BiomeTerrainGenerator, IntoBoxedTerrainGenerator, self}}, CHUNK_LENGTH_U,
 }};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<Diagnostics>) {
@@ -69,9 +69,9 @@ fn display_player_settings(
         ui.separator();
         ui.heading("speed");
         ui.label(format!("Movement speed"));
-        ui.add(Slider::new(&mut settings.speed, 1.0..=20.0f32));
+        ui.add(Slider::new(&mut settings.speed, 1.0..=100.0f32));
         ui.label(format!("Sprint speed multiplier"));
-        ui.add(Slider::new(&mut settings.sprint_speed_mult, 1.0..=10.0f32));
+        ui.add(Slider::new(&mut settings.sprint_speed_mult, 1.0..=100.0f32));
         ui.separator();
         ui.heading("camera");
         ui.label(format!("FOV"));
@@ -101,19 +101,20 @@ fn display_player_settings(
 }
 
 fn draw_chunk_borders(
-    mut lines: ResMut<DebugLines>,
+    // mut lines: ResMut<DebugLines>,
     mut shapes: ResMut<DebugShapes>,
     chunk: IVec3,
 ) {
     let length = CHUNK_LENGTH as f32;
+    let height = CHUNK_HEIGHT as f32;
     let cube_x = chunk.x as f32 + length / 2.;
-    let cube_y = chunk.y as f32 + length / 2.;
+    let cube_y = chunk.y as f32 + height / 2.;
     let cube_z = chunk.z as f32 + length / 2.;
 
     shapes
         .cuboid()
         .position(Vec3::new(cube_x, cube_y, cube_z))
-        .size(Vec3::splat(length))
+        .size(Vec3::new(length, height, length))
         .color(Color::RED);
 
     // for i in 0..=CHUNK_LENGTH {
@@ -139,10 +140,21 @@ fn display_main_stats(
     player_pos: Res<CurrentLocalPlayerChunk>,
     mut chunk_loading_radius: ResMut<ChunkLoadRadius>,
     mut chunk_command_queue: ResMut<ChunkCommandQueue>,
-    lines: ResMut<DebugLines>,
+    // lines: ResMut<DebugLines>,
     shapes: ResMut<DebugShapes>,
     loaded_chunks: Res<ChunkEntities>,
 ) {
+    let terrain = TERRAIN_GENERATOR.read().unwrap();
+    let biome = terrain.biome_at_xz(player_pos.world_pos.x as i32 - 1, player_pos.world_pos.z as i32 - 1);
+    let biome_name = biome.name();
+
+    // let biome_name = match biome {
+    //     &biomes::BasicPlainsBiomeTerrainGenerator => "Plains",
+    //     &biomes::BasicDesertBiomeTerrainGenerator => "Desert",
+    //     &biomes::BasicSnowyPlainsBiomeTerrainGenerator => "Snowy Plains",
+    //     _ => "Unknown",
+    // };
+
     egui::Window::new("voxel world stuff").show(egui.ctx_mut(), |ui| {
         ui.heading("Chunks");
         ui.label(format!(
@@ -152,9 +164,9 @@ fn display_main_stats(
         ui.label(format!("Loaded chunk count: {}", loaded_chunks.len()));
         ui.separator();
         ui.label("Horizontal chunk loading radius");
-        ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 8..=32));
+        ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 1..=32));
         ui.label("Vertical chunk loading radius");
-        ui.add(Slider::new(&mut chunk_loading_radius.vertical, 2..=10));
+        ui.add(Slider::new(&mut chunk_loading_radius.vertical, 1..=10));
         ui.separator();
 
         if ui.button("Clear loaded chunks").clicked() {
@@ -165,9 +177,10 @@ fn display_main_stats(
         ui.heading("Current player position");
         ui.label(format!("Current position : {}", player_pos.world_pos));
         ui.label(format!("Current chunk : {:?}", player_pos.chunk_min));
+        ui.label(format!("Current biome : {}", biome_name));
     });
 
-    draw_chunk_borders(lines, shapes, player_pos.chunk_min);
+    draw_chunk_borders(shapes, player_pos.chunk_min);
 }
 
 fn display_debug_ui_criteria(ui_state: Res<DebugUIState>) -> bool {

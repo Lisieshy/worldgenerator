@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use super::{
     chunks::{ChunkEntities, ChunkLoadingSet, DirtyChunks},
     terrain::TerrainGenSet,
-    Chunk, ChunkShape, Voxel, CHUNK_LENGTH,
+    Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT,
 };
 use crate::voxel::{
     render::{mesh_buffer, ChunkMaterialSingleton, MeshBuffers},
@@ -36,7 +36,7 @@ pub fn prepare_chunks(
                 visibility: Visibility::Hidden,
                 ..Default::default()
             },
-            Aabb::from_min_max(Vec3::ZERO, Vec3::splat(CHUNK_LENGTH as f32)),
+            Aabb::from_min_max(Vec3::ZERO, Vec3::new(CHUNK_LENGTH as f32, CHUNK_HEIGHT as f32, CHUNK_LENGTH as f32)),
         ));
         // There is no need to cast shadows for chunks below the surface.
         if chunk_key.0.y <= 64 {

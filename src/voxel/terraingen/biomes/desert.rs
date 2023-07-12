@@ -38,6 +38,10 @@ impl LayeredBiomeTerrainGenerator for BasicDesertBiomeTerrainGenerator {
             make_cacti(buffer, pos, size);
         }
     }
+
+    fn get_name(&self) -> &'static str {
+        "Desert"
+    }
 }
 
 fn make_cacti(buffer: &mut VoxelBuffer<Voxel, ChunkShape>, pos: UVec3, size: u32) {

@@ -8,7 +8,7 @@ use bevy::{
 };
 use float_ord::FloatOrd;
 
-use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH};
+use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH, CHUNK_HEIGHT};
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::Voxel;
 
@@ -22,7 +22,8 @@ fn update_player_pos(
 
         let nearest_chunk_origin = Vec3::new(
             player_coords.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
-            player_coords.y.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
+            // player_coords.y.div_euclid(CHUNK_HEIGHT as f32) * CHUNK_HEIGHT as f32,
+            0f32,
             player_coords.z.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32
         );
 
@@ -45,7 +46,7 @@ fn update_view_chunks(
     //perf: optimize this.
     for x in -view_radius.horizontal..view_radius.horizontal {
         for z in -view_radius.horizontal..view_radius.horizontal {
-            for y in -view_radius.vertical..view_radius.vertical {
+            // for y in -view_radius.vertical..view_radius.vertical {
                 if x.pow(2) + z.pow(2) >= view_radius.horizontal.pow(2) {
                     continue;
                 }
@@ -54,11 +55,12 @@ fn update_view_chunks(
                     let mut pos: IVec3 = player_pos.chunk_min
                         + IVec3::new(
                             x * CHUNK_LENGTH as i32,
-                            y * CHUNK_LENGTH as i32,
+                            // y * CHUNK_HEIGHT as i32,
+                            0,
                             z * CHUNK_LENGTH as i32,
                         );
 
-                    pos.y = pos.y.max(0);
+                    // pos.y = pos.y.max(0);
 
                     pos
                 };
@@ -66,7 +68,7 @@ fn update_view_chunks(
                 if chunk_entities.entity(chunk_key).is_none() {
                     chunk_command_queue.create.push(chunk_key);
                 }
-            }
+            // }
         }
     }
 
@@ -78,7 +80,7 @@ fn update_view_chunks(
         #[allow(clippy::suspicious_operation_groupings)]
         if delta.x.pow(2) + delta.z.pow(2)
             > view_radius.horizontal.pow(2) * (CHUNK_LENGTH as i32).pow(2)
-            || delta.y.pow(2) > view_radius.vertical.pow(2) * (CHUNK_LENGTH as i32).pow(2)
+            // || delta.y.pow(2) > view_radius.vertical.pow(2) * (CHUNK_HEIGHT as i32).pow(2)
         {
             chunk_command_queue.destroy.push(*loaded_chunk);
         }
@@ -207,7 +209,7 @@ impl Plugin for VoxelWorldChunkingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource::<ChunkLoadRadius>(ChunkLoadRadius {
             horizontal: 8,
-            vertical: 4,
+            vertical: 1,
         })
         .init_resource::<ChunkEntities>()
         .insert_resource(CurrentLocalPlayerChunk {

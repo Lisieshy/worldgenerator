@@ -64,4 +64,8 @@ impl LayeredBiomeTerrainGenerator for BasicPlainsBiomeTerrainGenerator {
             make_tree::<Wood, Leaves>(buffer, ILUVec3::from(pos.to_array()));
         }
     }
+
+    fn get_name(&self) -> &'static str {
+        "Plains"
+    }
 }

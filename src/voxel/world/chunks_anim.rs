@@ -12,7 +12,7 @@ use super::{
 };
 
 const ANIMATION_DURATION: f32 = 0.8;
-const ANIMATION_HEIGHT: f32 = 128.;
+const ANIMATION_HEIGHT: f32 = 256.;
 
 #[derive(Component)]
 pub struct ChunkSpawnAnimation {

@@ -6,7 +6,7 @@ use crate::voxel::{
     materials::{Bedrock, Rock},
     sdf,
     storage::VoxelBuffer,
-    ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_LENGTH_U,
+    ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_LENGTH_U, CHUNK_HEIGHT,
 };
 
 use super::noise::Heightmap;
@@ -41,7 +41,8 @@ pub fn terrain_carve_heightmap(
                 .get(pos.into())
                 .checked_sub(key.y as u32)
                 .unwrap_or_default()
-                .min(CHUNK_LENGTH);
+                .min(CHUNK_HEIGHT);
+                //.min(CHUNK_LENGTH);
 
             for h in 0..local_height {
                 // if (pos.x == 0 || pos.x == local_height) || (pos.y == 0 || pos.y == local_height) {
@@ -58,7 +59,7 @@ pub fn make_pine_tree<T: VoxelMaterial, L: VoxelMaterial>(
     origin: UVec3,
 ) {
     let origin = Vec3::from(origin.as_vec3().to_array());
-    Extent::from_min_and_shape(UVec3::ZERO, UVec3::splat(CHUNK_LENGTH)) //may want to calculate an extent encompassing the tree instead of iterating over the complete 32^3 volume
+    Extent::from_min_and_shape(UVec3::ZERO, UVec3::new(CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH)) //may want to calculate an extent encompassing the tree instead of iterating over the complete volume
         .iter3()
         .map(|x| Vec3::from_array(x.as_vec3().to_array()))
         .map(|position| {
@@ -92,7 +93,7 @@ pub fn make_tree<T: VoxelMaterial, L: VoxelMaterial>(
     origin: UVec3,
 ) {
     let origin = Vec3::from(origin.as_vec3().to_array());
-    Extent::from_min_and_shape(UVec3::ZERO, UVec3::splat(CHUNK_LENGTH)) //may want to calculate an extent encompassing the tree instead of iterating over the complete 32^3 volume
+    Extent::from_min_and_shape(UVec3::ZERO, UVec3::new(CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH)) //may want to calculate an extent encompassing the tree instead of iterating over the complete 32^3 volume
         .iter3()
         .map(|x| Vec3::from_array(x.as_vec3().to_array()))
         .map(|position| {

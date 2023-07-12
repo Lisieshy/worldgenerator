@@ -8,7 +8,7 @@ use crate::voxel::{
     materials::{Dirt, Grass},
     storage::VoxelBuffer,
     terraingen::noise::Heightmap,
-    ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_LENGTH_U,
+    ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_LENGTH_U, CHUNK_HEIGHT,
 };
 
 use super::BiomeTerrainGenerator;
@@ -35,6 +35,10 @@ pub trait LayeredBiomeTerrainGenerator: BiomeTerrainGenerator {
         _buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     ) {
     }
+
+    fn get_name(&self) -> &'static str {
+        "Default Layered Biome"
+    }
 }
 
 impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
@@ -49,8 +53,8 @@ impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
             .for_each(|pos| {
                 let height = heightmap.get(pos.into());
                 // we only want to apply surface layer decoration on top of the surface chunk
-                if height.div(CHUNK_LENGTH) == (chunk_key.y as u32).div(CHUNK_LENGTH) {
-                    let local_height = height.rem_euclid(CHUNK_LENGTH);
+                if height.div(CHUNK_HEIGHT) == (chunk_key.y as u32).div(CHUNK_HEIGHT) {
+                    let local_height = height.rem_euclid(CHUNK_HEIGHT);
 
                     for h in 0..=self.num_layers() {
                         let remaining_height = local_height.checked_sub(h);
@@ -73,8 +77,8 @@ impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
     ) {
         let height = heightmap.get([x as u32, z as u32].into());
         // we only want to apply surface layer decoration on top of the surface chunk
-        if height.div(CHUNK_LENGTH) == (chunk_key.y as u32).div(CHUNK_LENGTH) {
-            let local_height = height.rem_euclid(CHUNK_LENGTH);
+        if height.div(CHUNK_HEIGHT) == (chunk_key.y as u32).div(CHUNK_HEIGHT) {
+            let local_height = height.rem_euclid(CHUNK_HEIGHT);
 
             for h in 0..=self.num_layers() {
                 let remaining_height = local_height.checked_sub(h);
@@ -101,10 +105,14 @@ impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
             .for_each(|pos| {
                 let height = heightmap.get(pos.into());
 
-                if height.div(CHUNK_LENGTH) == (chunk_key.y as u32).div(CHUNK_LENGTH) {
-                    let local_height = height.rem_euclid(CHUNK_LENGTH);
+                if height.div(CHUNK_HEIGHT) == (chunk_key.y as u32).div(CHUNK_HEIGHT) {
+                    let local_height = height.rem_euclid(CHUNK_HEIGHT);
                     self.place_decoration(chunk_key, [pos.x, local_height, pos.y].into(), buffer);
                 }
             });
+    }
+
+    fn name(&self) -> &'static str {
+        self.get_name()
     }
 }

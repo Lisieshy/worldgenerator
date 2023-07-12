@@ -42,6 +42,8 @@ pub trait BiomeTerrainGenerator: 'static + Sync + Send {
         heightmap: Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
         buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     );
+
+    fn name(&self) -> &'static str;
 }
 
 /// Utility trait for boxing biome generators.

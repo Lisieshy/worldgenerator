@@ -1,6 +1,6 @@
 use super::{
     chunks::{ChunkLoadingSet, DirtyChunks},
-    Chunk, ChunkShape,
+    Chunk, ChunkShape, CHUNK_LENGTH, CHUNK_HEIGHT,
 };
 use crate::voxel::{
     storage::{ChunkMap, VoxelBuffer},
@@ -22,7 +22,7 @@ fn queue_terrain_gen(mut commands: Commands, new_chunks: Query<(Entity, &Chunk),
 
     new_chunks
         .iter()
-        .filter(|(_, key)| key.0.y < 288)
+        .filter(|(_, key)| key.0.y >= 0 && key.0.y < CHUNK_HEIGHT as i32) // only generate terrain for 1 vertical chunks.
         .map(|(entity, key)| (entity, key.0))
         .map(|(entity, key)| {
             (
@@ -42,14 +42,13 @@ fn queue_terrain_gen(mut commands: Commands, new_chunks: Query<(Entity, &Chunk),
         });
 }
 
-/// Polls for finished gen tasks and put back the generated terrain into the voxel map
-pub fn process_terrain_gen(
+fn wrap_up(
     mut chunk_data: ResMut<ChunkMap<Voxel, ChunkShape>>,
     mut commands: Commands,
     mut dirty_chunks: ResMut<DirtyChunks>,
-    mut gen_chunks: Query<(Entity, &Chunk, &mut TerrainGenTask)>,
+    mut generated_chunks: Query<(Entity, &Chunk, &mut TerrainGenTask)>,
 ) {
-    gen_chunks.for_each_mut(|(entity, chunk, mut gen_task)| {
+    generated_chunks.for_each_mut(|(entity, chunk, mut gen_task)| {
         if let Some(data) = future::block_on(future::poll_once(&mut gen_task.0)) {
             chunk_data.insert(chunk.0, data);
             dirty_chunks.mark_dirty(chunk.0);
@@ -73,7 +72,7 @@ impl Plugin for VoxelWorldTerrainGenPlugin {
                 .after(ChunkLoadingSet),
         )
         .add_systems(
-            (queue_terrain_gen, process_terrain_gen)
+            (queue_terrain_gen, wrap_up)
                 .chain()
                 .in_set(TerrainGenSet),
         );
