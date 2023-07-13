@@ -18,6 +18,7 @@ impl MeshableVoxel for Voxel {
     fn get_visibility(&self) -> block_mesh::VoxelVisibility {
         match *self {
             Self::EMPTY_VOXEL => block_mesh::VoxelVisibility::Empty,
+            Voxel(6) => block_mesh::VoxelVisibility::Translucent, // Water Voxel type has ID 6.
             _ => block_mesh::VoxelVisibility::Opaque,
         }
     }

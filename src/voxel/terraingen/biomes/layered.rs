@@ -96,9 +96,9 @@ impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
         heightmap: Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
         buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     ) {
-        if chunk_key.y <= 96 {
-            return;
-        }
+        // if chunk_key.y <= 96 {
+        //     return;
+        // }
 
         Extent::from_min_and_shape(UVec2::ZERO, UVec2::splat(CHUNK_LENGTH))
             .iter2()
@@ -110,6 +110,26 @@ impl<T: LayeredBiomeTerrainGenerator> BiomeTerrainGenerator for T {
                     self.place_decoration(chunk_key, [pos.x, local_height, pos.y].into(), buffer);
                 }
             });
+    }
+
+    fn decorate_terrain_at_xz(
+        &self,
+        chunk_key: IVec3,
+        x: u32,
+        z: u32,
+        heightmap: Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
+        buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
+    ) {
+        // if chunk_key.y <= 96 {
+        //     return;
+        // }
+
+        let height = heightmap.get([x as u32, z as u32].into());
+
+        // if height.div(CHUNK_HEIGHT) == (chunk_key.y as u32).div(CHUNK_HEIGHT) {
+            // let local_height = height.rem_euclid(CHUNK_HEIGHT);
+            self.place_decoration(chunk_key, [x, height, z].into(), buffer);
+        // }
     }
 
     fn name(&self) -> &'static str {

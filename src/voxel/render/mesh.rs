@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::voxel::{storage::VoxelBuffer, MaterialVoxel};
+use crate::voxel::{storage::VoxelBuffer, MaterialVoxel, materials::Water, material::VoxelMaterial};
 use bevy::{
     prelude::Mesh,
     render::mesh::{Indices, VertexAttributeValues},
@@ -95,7 +95,17 @@ pub fn mesh_buffer<T, S>(
     {
         for quad in group.iter() {
             indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
-            positions.extend_from_slice(&face.quad_mesh_positions(quad, scale));
+            
+            let mut quad_positions = face.quad_mesh_positions(quad, scale);
+
+            // if buffer.voxel_at(quad.minimum.map(|x| x - 1).into()).as_mat_id() == Water::ID {
+            //     for position in &mut quad_positions {
+            //         position[1] -= 0.1;
+            //     }
+            // }
+            
+            positions.extend_from_slice(&quad_positions);
+
             data.extend_from_slice(
                 &[(block_face_normal_index as u32) << 8u32
                     | buffer

@@ -38,11 +38,19 @@ use iyes_progress::{ProgressCounter, ProgressPlugin};
 fn main() {
     let mut app = App::default();
     app
+        // .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        // .add_state::<GameState>()
+        // .add_loading_state(
+        //     LoadingState::new(GameState::AssetLoading)
+        //         .continue_to_state(GameState::GameRunning)
+        //         .on_failure_continue_to_state(GameState::AssetError)
+        // )
+        // .add_collection_to_loading_state::<_, MyAssets>(GameState::AssetLoading)
         .add_plugins(DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "World Gen".to_string(),
-                    present_mode: bevy::window::PresentMode::AutoVsync,
+                    present_mode: bevy::window::PresentMode::AutoNoVsync,
                     ..default()
                 }),
                 ..default()
@@ -54,9 +62,14 @@ fn main() {
             // })
         )
         .init_resource::<PlayerSettings>()
+        .add_plugin(FrameTimeDiagnosticsPlugin)
+        // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
         .add_plugin(voxel::VoxelWorldPlugin)
         .add_plugin(debug::DebugUIPlugins)
+        // .add_startup_system(setup_boot_screen)
         .add_startup_system(setup)
+        // .add_system(asset_error.in_schedule(OnEnter(GameState::AssetError)))
+        // .add_system(print_progress)
         // .add_system(update_camera_settings.after(setup))
         .run();
 }
@@ -113,10 +126,10 @@ fn main() {
 
 #[derive(AssetCollection, Resource)]
 pub struct MyAssets {
-    #[asset(path = "textures/cobble-diffuse.png")]
-    base_map: Handle<Image>,
-    #[asset(path = "textures/cobble-normal.png")]
-    normal_map: Handle<Image>,
+    // #[asset(path = "textures/cobble-diffuse.png")]
+    // base_map: Handle<Image>,
+    // #[asset(path = "textures/cobble-normal.png")]
+    // normal_map: Handle<Image>,
     #[asset(path = "fonts/Alkhemikal.ttf")]
     font: Handle<Font>,
 }
@@ -126,7 +139,7 @@ enum GameState {
     #[default]
     AssetLoading,
     AssetError,
-    Game,
+    GameRunning,
 }
 
 fn asset_error(
@@ -226,9 +239,13 @@ fn setup(
     cmds.spawn(Camera3dBundle {
         projection: bevy::prelude::Projection::Perspective(PerspectiveProjection {
             fov: settings.fov.to_radians(),
-            far: 2048.0,
+            far: 4096.0,
             ..Default::default()
         }),
+        camera: Camera {
+            order: 1,
+            ..default()
+        },
         transform: Transform::from_xyz(2.0, 180.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     })

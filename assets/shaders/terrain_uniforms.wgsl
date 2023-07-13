@@ -8,6 +8,7 @@ struct VoxelMat {
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
+    alpha: f32,
 };
 
 @group(1) @binding(0)

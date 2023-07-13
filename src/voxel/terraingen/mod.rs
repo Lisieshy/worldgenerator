@@ -45,6 +45,7 @@ impl TerrainGenerator {
 
     //returns the biome with the closest temp / humidity
     #[allow(clippy::borrowed_box)]
+    #[allow(dead_code)]
     pub fn biome_at_chunk(&self, chunk_key: IVec3) -> &Box<dyn BiomeTerrainGenerator> {
         let coords = noise::voronoi(chunk_key.xzy().truncate().as_vec2() * BIOME_INVSCALE);
         let p = FloatOrd(noise::rand2to1i(coords));
@@ -69,7 +70,7 @@ impl TerrainGenerator {
     pub fn generate(&self, chunk_key: IVec3, buffer: &mut VoxelBuffer<Voxel, ChunkShape>) {
         // let biome = self.biome_at(chunk_key);
 
-        if chunk_key.x != 0 {
+        // if chunk_key.x != 0 {
         let noise = generate_heightmap_data(chunk_key, CHUNK_LENGTH_U);
         let noise_map = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&noise);
         common::terrain_carve_heightmap(buffer, chunk_key, &noise_map);
@@ -78,17 +79,18 @@ impl TerrainGenerator {
             for z in 0..CHUNK_LENGTH {
                 let biome = self.biome_at_xz(x as i32 + chunk_key.x, z as i32 + chunk_key.z);
                 biome.carve_terrain_at_xz(chunk_key, x, z, noise_map, buffer);
+                // biome.decorate_terrain_at_xz(chunk_key, x, z, noise_map, buffer);
             }
         }
 
         // biome.carve_terrain(chunk_key, noise_map, buffer);
-        }
+        // }
 
         // biome.decorate_terrain(chunk_key, noise_map, buffer);
 
-        if chunk_key.y == 0 {
+        // if chunk_key.y == 0 {
             terrain_generate_world_bottom_border(buffer);
-        }
+        // }
     }
 }
 

@@ -3,11 +3,11 @@ use bevy::{
     input::{keyboard::KeyboardInput, ButtonState},
     prelude::{
         Color, CoreSet, EventReader, IntoSystemConfig, IntoSystemConfigs, IntoSystemSetConfigs,
-        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat,
-    },
+        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With,
+    }, utils::tracing::field::display, app::AppExit, window::{Window, PrimaryWindow, WindowMode},
 };
 use bevy_egui::{
-    egui::{self, Rgba, Slider},
+    egui::{self, Rgba, Slider, Button},
     EguiContexts, EguiPlugin, EguiSet,
 };
 
@@ -16,7 +16,7 @@ use bevy_prototype_debug_lines::*;
 use crate::{voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
-    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{noise::{generate_heightmap_data, Heightmap}, TERRAIN_GENERATOR, self, biomes::{BiomeTerrainGenerator, IntoBoxedTerrainGenerator, self}}, CHUNK_LENGTH_U,
+    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::TERRAIN_GENERATOR,
 }};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<Diagnostics>) {
@@ -38,6 +38,41 @@ fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<Diagnostics>) {
                 .unwrap_or_default()
         ));
     });
+}
+
+fn display_window_settings(
+    mut egui: EguiContexts,
+    mut ui_state: ResMut<DebugUIState>,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+    mut exit: EventWriter<AppExit>,
+) {
+    egui::Window::new("window stuff").show(egui.ctx_mut(), |ui| {
+        ui.heading("Window size");
+        ui.label(format!("W x H: {} x {}", windows.single_mut().width(), windows.single_mut().height()));
+        ui.label(format!("Physical W x Physical H: {} x {}", windows.single_mut().physical_width(), windows.single_mut().physical_height()));
+        ui.separator();
+        ui.heading("Window mode");
+        ui.label(format!("Window mode: {:?}", windows.single_mut().mode));
+        ui.label(format!("Vsync: {:?}", windows.single_mut().present_mode));
+        ui.separator();
+        ui.horizontal(|ui| {
+            ui.radio_value(&mut ui_state.window_mode, WindowMode::Windowed, "Windowed");
+            ui.radio_value(&mut ui_state.window_mode, WindowMode::BorderlessFullscreen, "Borderless Fullscreen");
+            ui.radio_value(&mut ui_state.window_mode, WindowMode::Fullscreen, "Fullscreen");
+        });
+        ui.checkbox(&mut ui_state.use_vsync, "Vsync");
+        ui.separator();
+        if ui.add(Button::new("Quit")).on_hover_text("Exits the game.").clicked() {
+            exit.send(AppExit);
+        }
+    });
+
+    windows.single_mut().mode = ui_state.window_mode;
+    windows.single_mut().present_mode = if ui_state.use_vsync {
+        bevy::window::PresentMode::AutoVsync
+    } else {
+        bevy::window::PresentMode::AutoNoVsync
+    };
 }
 
 fn display_player_settings(
@@ -63,9 +98,9 @@ fn display_player_settings(
         ui.separator();
         ui.heading("sensitivity");
         ui.label(format!("Mouse sensitivity"));
-        ui.add(Slider::new(&mut settings.mouse_sensitivity, 0.0001..=0.001f32));
+        ui.add(Slider::new(&mut settings.mouse_sensitivity, 0.000001..=0.001f32));
         ui.label(format!("Controller sensitivity"));
-        ui.add(Slider::new(&mut settings.gamepad_sensitivity, 0.1..=1.0f32));
+        ui.add(Slider::new(&mut settings.gamepad_sensitivity, 0.01..=1.0f32));
         ui.separator();
         ui.heading("speed");
         ui.label(format!("Movement speed"));
@@ -146,14 +181,6 @@ fn display_main_stats(
 ) {
     let terrain = TERRAIN_GENERATOR.read().unwrap();
     let biome = terrain.biome_at_xz(player_pos.world_pos.x as i32 - 1, player_pos.world_pos.z as i32 - 1);
-    let biome_name = biome.name();
-
-    // let biome_name = match biome {
-    //     &biomes::BasicPlainsBiomeTerrainGenerator => "Plains",
-    //     &biomes::BasicDesertBiomeTerrainGenerator => "Desert",
-    //     &biomes::BasicSnowyPlainsBiomeTerrainGenerator => "Snowy Plains",
-    //     _ => "Unknown",
-    // };
 
     egui::Window::new("voxel world stuff").show(egui.ctx_mut(), |ui| {
         ui.heading("Chunks");
@@ -165,8 +192,8 @@ fn display_main_stats(
         ui.separator();
         ui.label("Horizontal chunk loading radius");
         ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 1..=32));
-        ui.label("Vertical chunk loading radius");
-        ui.add(Slider::new(&mut chunk_loading_radius.vertical, 1..=10));
+        // ui.label("Vertical chunk loading radius");
+        // ui.add(Slider::new(&mut chunk_loading_radius.vertical, 1..=10));
         ui.separator();
 
         if ui.button("Clear loaded chunks").clicked() {
@@ -177,7 +204,7 @@ fn display_main_stats(
         ui.heading("Current player position");
         ui.label(format!("Current position : {}", player_pos.world_pos));
         ui.label(format!("Current chunk : {:?}", player_pos.chunk_min));
-        ui.label(format!("Current biome : {}", biome_name));
+        ui.label(format!("Current biome : {}", biome.name()));
     });
 
     draw_chunk_borders(shapes, player_pos.chunk_min);
@@ -278,6 +305,9 @@ fn display_material_editor(
             egui::color_picker::Alpha::Opaque,
         );
         selected_mat.emissive = Color::from(editable_emissive.to_array());
+
+        // ui.label("Opacity");
+        // ui.add(Slider::new(&mut selected_mat.opacity, 0.0..=1.0f32));
     });
 }
 
@@ -293,7 +323,7 @@ pub struct DebugUIPlugins;
 impl Plugin for DebugUIPlugins {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(EguiPlugin)
-            .add_plugin(FrameTimeDiagnosticsPlugin)
+            // .add_plugin(FrameTimeDiagnosticsPlugin)
             // .add_plugin(DebugLinesPlugin::with_depth_test(true))
             .add_plugin(DebugLinesPlugin::default())
             .add_plugin(EntityCountDiagnosticsPlugin)
@@ -304,7 +334,7 @@ impl Plugin for DebugUIPlugins {
                     .run_if(display_mat_debug_ui_criteria),
             ))
             .add_systems(
-                (display_debug_stats, display_main_stats, display_player_settings)
+                (display_debug_stats, display_main_stats, display_player_settings, display_window_settings)
                     .in_set(DebugUISet::Display)
                     .distributive_run_if(display_debug_ui_criteria),
             )
@@ -314,15 +344,24 @@ impl Plugin for DebugUIPlugins {
                     .in_base_set(CoreSet::Update)
                     .after(EguiSet::ProcessInput),
             )
-            .init_resource::<DebugUIState>();
+            // .init_resource::<DebugUIState>();
+            .insert_resource(DebugUIState {
+                display_debug_info: true,
+                display_mat_debug: false,
+                selected_mat: 0,
+                window_mode: WindowMode::Windowed,
+                use_vsync: true,
+            });
     }
 }
 
-#[derive(Default, Resource)]
+#[derive(Resource)]
 struct DebugUIState {
     display_debug_info: bool,
     display_mat_debug: bool,
 
     // DD
     pub selected_mat: u8,
+    pub window_mode: WindowMode,
+    pub use_vsync: bool,
 }

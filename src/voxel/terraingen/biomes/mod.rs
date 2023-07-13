@@ -43,6 +43,15 @@ pub trait BiomeTerrainGenerator: 'static + Sync + Send {
         buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     );
 
+    fn decorate_terrain_at_xz(
+        &self,
+        chunk_key: IVec3,
+        x: u32,
+        z: u32,
+        heightmap: Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
+        buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
+    );
+
     fn name(&self) -> &'static str;
 }
 

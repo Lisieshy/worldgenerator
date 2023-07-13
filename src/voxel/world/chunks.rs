@@ -8,7 +8,7 @@ use bevy::{
 };
 use float_ord::FloatOrd;
 
-use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH, CHUNK_HEIGHT};
+use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH};
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::Voxel;
 
@@ -52,7 +52,7 @@ fn update_view_chunks(
                 }
 
                 let chunk_key = {
-                    let mut pos: IVec3 = player_pos.chunk_min
+                    let pos: IVec3 = player_pos.chunk_min
                         + IVec3::new(
                             x * CHUNK_LENGTH as i32,
                             // y * CHUNK_HEIGHT as i32,
@@ -189,7 +189,7 @@ pub struct CurrentLocalPlayerChunk {
 #[derive(Resource)]
 pub struct ChunkLoadRadius {
     pub horizontal: i32,
-    pub vertical: i32,
+    // pub vertical: i32,
 }
 
 /// A queue tracking the creation / destroy commands for chunks.
@@ -209,7 +209,7 @@ impl Plugin for VoxelWorldChunkingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource::<ChunkLoadRadius>(ChunkLoadRadius {
             horizontal: 8,
-            vertical: 1,
+            // vertical: 1,
         })
         .init_resource::<ChunkEntities>()
         .insert_resource(CurrentLocalPlayerChunk {

@@ -29,10 +29,10 @@ impl LayeredBiomeTerrainGenerator for BasicPlainsBiomeTerrainGenerator {
         pos: UVec3,
         buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     ) {
-        let spawn_chance = noise::rand2to1(
-            (pos.xz().as_vec2() + key.xz().as_vec2()) * 0.1,
-            Vec2::new(12.989, 78.233),
-        );
+        // let spawn_chance = noise::rand2to1(
+        //     (pos.xz().as_vec2() + key.xz().as_vec2()) * 0.1,
+        //     Vec2::new(12.989, 78.233),
+        // );
 
         let grass_blade_height = ((noise::rand2to1(
             (pos.xz().as_vec2() + key.xz().as_vec2()) * 0.1,
@@ -40,7 +40,9 @@ impl LayeredBiomeTerrainGenerator for BasicPlainsBiomeTerrainGenerator {
         ) * 100.) as u32)
             .rem_euclid(4);
 
-        if grass_blade_height > 1 && pos.y <= 29 {
+        // info!("grass blade height: {}", grass_blade_height);
+
+        if grass_blade_height > 1 {
             for y in 0..grass_blade_height {
                 let position = ILUVec3::from_array(pos.to_array()) + ILUVec3::new(0, y, 0);
                 *buffer.voxel_at_mut(position) = Grass::into_voxel();
@@ -49,20 +51,20 @@ impl LayeredBiomeTerrainGenerator for BasicPlainsBiomeTerrainGenerator {
 
 
         // Let's put some rock boulders in the plains to populate a lil bit
-        let rock_spawn_chance = noise::rand2to1(
-            (pos.xz().as_vec2() + key.xz().as_vec2()) * 0.1,
-            Vec2::new(72845.4782, 8472.2437),
-        );
+        // let rock_spawn_chance = noise::rand2to1(
+        //     (pos.xz().as_vec2() + key.xz().as_vec2()) * 0.1,
+        //     Vec2::new(72845.4782, 8472.2437),
+        // );
 
-        if rock_spawn_chance > 0.995 {
-            let rock_size = (1.0f32 - rock_spawn_chance) * 1000.0;
-            make_rock::<Rock>(buffer, ILUVec3::from(pos.to_array()), rock_size);
-        }
+        // if rock_spawn_chance > 0.995 {
+        //     let rock_size = (1.0f32 - rock_spawn_chance) * 1000.0;
+        //     make_rock::<Rock>(buffer, ILUVec3::from(pos.to_array()), rock_size);
+        // }
 
-        if spawn_chance > 0.981 && pos.y <= 13 {
-            // this is a stupid hack but a real fix would be to allow terrain decoration to work vertically
-            make_tree::<Wood, Leaves>(buffer, ILUVec3::from(pos.to_array()));
-        }
+        // if spawn_chance > 0.998 {
+        //     // this is a stupid hack but a real fix would be to allow terrain decoration to work vertically
+        //     make_tree::<Wood, Leaves>(buffer, ILUVec3::from(pos.to_array()));
+        // }
     }
 
     fn get_name(&self) -> &'static str {

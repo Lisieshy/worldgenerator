@@ -1,6 +1,6 @@
 use super::{
     chunks::{ChunkLoadingSet, DirtyChunks},
-    Chunk, ChunkShape, CHUNK_LENGTH, CHUNK_HEIGHT,
+    Chunk, ChunkShape,
 };
 use crate::voxel::{
     storage::{ChunkMap, VoxelBuffer},
@@ -22,7 +22,6 @@ fn queue_terrain_gen(mut commands: Commands, new_chunks: Query<(Entity, &Chunk),
 
     new_chunks
         .iter()
-        .filter(|(_, key)| key.0.y >= 0 && key.0.y < CHUNK_HEIGHT as i32) // only generate terrain for 1 vertical chunks.
         .map(|(entity, key)| (entity, key.0))
         .map(|(entity, key)| {
             (
