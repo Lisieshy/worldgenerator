@@ -41,7 +41,7 @@ impl Plugin for VoxelWorldPlugin {
 }
 
 pub const CHUNK_LENGTH: u32 = 64;
-pub const CHUNK_HEIGHT: u32 = 256;
+pub const CHUNK_HEIGHT: u32 = 512;
 pub const CHUNK_LENGTH_U: usize = CHUNK_LENGTH as usize;
 pub type ChunkShape = ConstShape3u32<CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH>;
 

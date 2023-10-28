@@ -103,24 +103,24 @@ impl VoxelMaterialRegistry {
 
 impl Default for VoxelMaterialRegistry {
     fn default() -> Self {
-        let mut registry = Self {
+        let registry = Self {
             materials: Default::default(),
             mat_ids: Default::default(),
         };
 
-        registry.register_material::<Void>(MaterialRegistryInfo {
-            base_color: Color::BLACK,
-            name: "Void",
-            flags: VoxelMaterialFlags::SOLID,
-            ..Default::default()
-        });
+        // registry.register_material::<Void>(MaterialRegistryInfo {
+        //     base_color: Color::BLACK,
+        //     name: "Void",
+        //     flags: VoxelMaterialFlags::SOLID,
+        //     ..Default::default()
+        // });
 
         registry
     }
 }
 
 // The material with ID #0;
-pub struct Void;
+// pub struct Void;
 
 pub struct VoxelMaterialPlugin;
 impl Plugin for VoxelMaterialPlugin {

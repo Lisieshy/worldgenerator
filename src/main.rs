@@ -15,7 +15,7 @@ use bevy::{
         FrameTimeDiagnosticsPlugin
     }, pbr::wireframe::WireframePlugin, app::AppExit,
 };
-use bevy_embedded_assets::EmbeddedAssetPlugin;
+// use bevy_embedded_assets::EmbeddedAssetPlugin;
 use components::player_camera::PlayerCamera;
 use voxel::player::PlayerSettings;
 

@@ -5,6 +5,7 @@ use crate::{
     voxel_material,
 };
 
+voxel_material!(Void, 0);
 voxel_material!(Dirt, 1);
 voxel_material!(Sand, 2);
 voxel_material!(Grass, 3);
@@ -27,6 +28,13 @@ impl Plugin for VoxelWorldBaseMaterialsPlugin {
             .world
             .get_resource_mut::<VoxelMaterialRegistry>()
             .unwrap();
+
+        registry.register_material::<Void>(MaterialRegistryInfo {
+            base_color: Color::BLACK,
+            name: "Void",
+            flags: VoxelMaterialFlags::SOLID,
+            ..Default::default()
+        });
 
         registry.register_material::<Dirt>(MaterialRegistryInfo {
             base_color: Color::rgb_u8(112, 97, 92),

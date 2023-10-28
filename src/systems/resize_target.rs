@@ -1,14 +1,8 @@
 use bevy::{
     math::*,
     prelude::*,
-    render::{
-        render_resource::{
-            Extent3d,
-        },
-    },
-    sprite::{
-        Mesh2dHandle,
-    },
+    render::render_resource::Extent3d,
+    sprite::Mesh2dHandle,
     window::WindowResized,
 };
 

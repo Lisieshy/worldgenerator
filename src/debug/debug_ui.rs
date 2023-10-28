@@ -4,7 +4,7 @@ use bevy::{
     prelude::{
         Color, CoreSet, EventReader, IntoSystemConfig, IntoSystemConfigs, IntoSystemSetConfigs,
         KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With,
-    }, utils::tracing::field::display, app::AppExit, window::{Window, PrimaryWindow, WindowMode},
+    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode},
 };
 use bevy_egui::{
     egui::{self, Rgba, Slider, Button},
@@ -13,11 +13,11 @@ use bevy_egui::{
 
 use bevy_prototype_debug_lines::*;
 
-use crate::{voxel::{
+use crate::voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
-    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::TERRAIN_GENERATOR,
-}};
+    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U,
+};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<Diagnostics>) {
     egui::Window::new("performance stuff").show(egui.ctx_mut(), |ui| {
@@ -179,8 +179,14 @@ fn display_main_stats(
     shapes: ResMut<DebugShapes>,
     loaded_chunks: Res<ChunkEntities>,
 ) {
-    let terrain = TERRAIN_GENERATOR.read().unwrap();
-    let biome = terrain.biome_at_xz(player_pos.world_pos.x as i32 - 1, player_pos.world_pos.z as i32 - 1);
+    let chunk_continentalness = terraingen::noise::get_chunk_continentalness(player_pos.chunk_min, CHUNK_LENGTH_U);
+    let continentalness = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&chunk_continentalness);
+    let chunk_erosion = terraingen::noise::get_chunk_erosion(player_pos.chunk_min, CHUNK_LENGTH_U);
+    let erosion = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&chunk_erosion);
+    let chunk_peaks_valleys = terraingen::noise::get_chunk_peaks_valleys(player_pos.chunk_min, CHUNK_LENGTH_U);
+    let peaks_valleys = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&chunk_peaks_valleys);
+
+    let pos_in_chunk = player_pos.world_pos - player_pos.chunk_min.as_vec3();
 
     egui::Window::new("voxel world stuff").show(egui.ctx_mut(), |ui| {
         ui.heading("Chunks");
@@ -192,8 +198,6 @@ fn display_main_stats(
         ui.separator();
         ui.label("Horizontal chunk loading radius");
         ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 1..=32));
-        // ui.label("Vertical chunk loading radius");
-        // ui.add(Slider::new(&mut chunk_loading_radius.vertical, 1..=10));
         ui.separator();
 
         if ui.button("Clear loaded chunks").clicked() {
@@ -204,7 +208,13 @@ fn display_main_stats(
         ui.heading("Current player position");
         ui.label(format!("Current position : {}", player_pos.world_pos));
         ui.label(format!("Current chunk : {:?}", player_pos.chunk_min));
-        ui.label(format!("Current biome : {}", biome.name()));
+        ui.label(format!("Current position in chunk : {}", pos_in_chunk));
+        ui.separator();
+        ui.heading("Noise info");
+        ui.label(format!("Continentalness : {}", continentalness.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
+        ui.label(format!("Erosion : {}", erosion.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
+        ui.label(format!("Peaks&Valleys : {}", peaks_valleys.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
+        // ui.label(format!("Current biome : {}", biome.name()));
     });
 
     draw_chunk_borders(shapes, player_pos.chunk_min);
@@ -268,7 +278,7 @@ fn display_material_editor(
         // base_color
         ui.label("Base color");
 
-        let mut selected_mat = materials.get_mut_by_id(ui_state.selected_mat).unwrap();
+        let selected_mat = materials.get_mut_by_id(ui_state.selected_mat).unwrap();
 
         let mut editable_color = Rgba::from_rgba_unmultiplied(
             selected_mat.base_color.r(),
