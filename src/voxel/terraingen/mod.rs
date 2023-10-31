@@ -104,12 +104,13 @@ impl TerrainGenerator {
         let erosion = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&erosion_noise);
         let peaks_valleys = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&peaks_valleys_noise);
 
-        let mut surface_level = 80;
+        let mut surface_level = 62;
 
         Extent::from_min_and_shape(UVec2::ZERO, UVec2::new(CHUNK_LENGTH, CHUNK_LENGTH))
             .iter2()
             .for_each(|pos| {
-                surface_level += ((continentalness.getf(pos.into()) * 0.5 + erosion.getf(pos.into()) * 0.3 + peaks_valleys.getf(pos.into()) * 0.2) * 16.0) as u32;
+                surface_level += ((continentalness.getf(pos.into()) * 0.5 + erosion.getf(pos.into()) * 0.3 + peaks_valleys.getf(pos.into()) * 0.2)) as i32;
+                // surface_level += erosion.getf(pos.into()) as i32;
 
                 // surface_level += continentalness
                 //     .getf(pos.into())
@@ -119,15 +120,20 @@ impl TerrainGenerator {
                 //     ) as u32;
 
                 for h in 0..surface_level {
-                    *buffer.voxel_at_mut([pos.x, h, pos.y].into()) = Rock::into_voxel();
+                    *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Rock::into_voxel();
                 }
-                surface_level = 80;
+                for h in surface_level..64 {
+                    *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
+                }
+                surface_level = 62;
             });
 
 
-        if chunk_key.y == 0 {
-            terrain_generate_world_bottom_border(buffer);
-        }
+
+
+        terrain_generate_world_bottom_border(buffer);
+        // if chunk_key.y == 0 {
+        // }
     }
 }
 

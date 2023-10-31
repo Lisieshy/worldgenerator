@@ -137,8 +137,8 @@ pub fn handle_player_inputs(
                 CursorGrabMode::None => (),
                 _ => {
                     match key {
-                        KeyCode::Z => velocity += forward,
-                        KeyCode::Q => velocity -= right,
+                        KeyCode::W => velocity += forward,
+                        KeyCode::A => velocity -= right,
                         KeyCode::S => velocity -= forward,
                         KeyCode::D => velocity += right,
                         KeyCode::Space => velocity += Vec3::Y,
