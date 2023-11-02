@@ -1,18 +1,14 @@
 use bevy::{
     prelude::*,
-    reflect::TypeUuid,
-    render::{
-        render_resource::{
+    reflect::{TypeUuid, TypePath},
+    render::render_resource::{
             AsBindGroup,
             ShaderRef
         },
-    },
-    sprite::{
-        Material2d
-    },
+    sprite::Material2d,
 };
 
-#[derive(AsBindGroup, TypeUuid, Clone)]
+#[derive(AsBindGroup, TypeUuid, Clone, TypePath)]
 #[uuid = "d5c3714e-023e-4906-94a2-94e2771b30e1"]
 pub struct PixelateMaterial {
     #[uniform(0)]

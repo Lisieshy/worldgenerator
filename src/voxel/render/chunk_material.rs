@@ -1,7 +1,7 @@
 use crate::voxel::material::VoxelMaterialRegistry;
 use bevy::{
     prelude::*,
-    reflect::TypeUuid,
+    reflect::{TypeUuid, TypePath},
     render::{
         extract_component::ExtractComponent,
         mesh::MeshVertexAttribute,
@@ -9,7 +9,7 @@ use bevy::{
     },
 };
 
-#[derive(Component, Clone, Default, ExtractComponent)]
+#[derive(Component, Clone, Default, ExtractComponent, TypePath)]
 /// A marker component for voxel meshes.
 pub struct VoxelTerrainMesh;
 
@@ -18,7 +18,7 @@ impl VoxelTerrainMesh {
         MeshVertexAttribute::new("Vertex_Data", 0x696969, VertexFormat::Uint32);
 }
 
-#[derive(ShaderType, Clone, Copy, Default)]
+#[derive(ShaderType, Clone, Copy, Default, TypePath)]
 pub struct GpuVoxelMaterial {
     base_color: Color,
     flags: u32,
@@ -28,7 +28,7 @@ pub struct GpuVoxelMaterial {
     reflectance: f32,
 }
 
-#[derive(AsBindGroup, ShaderType, Clone, TypeUuid)]
+#[derive(AsBindGroup, ShaderType, Clone, TypeUuid, TypePath)]
 #[uuid = "1e31e29e-73d8-419c-8293-876ae81d2636"]
 pub struct GpuTerrainUniforms {
     #[uniform(0)]
@@ -127,13 +127,20 @@ pub struct ChunkMaterialPlugin;
 impl Plugin for ChunkMaterialPlugin {
     fn build(&self, app: &mut App) {
         // @todo: figure out race conditions w/ other systems
-        app.add_plugin(MaterialPlugin::<GpuTerrainUniforms>::default())
+        app.add_plugins(MaterialPlugin::<GpuTerrainUniforms>::default())
             .init_resource::<ChunkMaterialSingleton>()
-            .add_system(
+            .add_systems(
+                Update,
                 update_chunk_material_singleton
                     .run_if(resource_changed::<VoxelMaterialRegistry>())
                     .in_set(ChunkMaterialSet)
-                    .in_base_set(CoreSet::Update),
             );
+            // old code from bevy 0.10
+            // .add_system(
+            //     update_chunk_material_singleton
+            //         .run_if(resource_changed::<VoxelMaterialRegistry>())
+            //         .in_set(ChunkMaterialSet)
+            //         .in_base_set(Update),
+            // );
     }
 }

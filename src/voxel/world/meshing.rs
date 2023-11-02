@@ -112,12 +112,13 @@ pub struct VoxelWorldMeshingPlugin;
 impl Plugin for VoxelWorldMeshingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.configure_set(
+            Update,
             ChunkMeshingSet
-                .in_base_set(CoreSet::Update)
                 .after(TerrainGenSet)
                 .after(ChunkLoadingSet),
         )
         .add_systems(
+            Update,
             (prepare_chunks, queue_mesh_tasks, process_mesh_tasks)
                 .chain()
                 .in_set(ChunkMeshingSet),

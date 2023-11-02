@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Commands, Component, CoreSet, Entity, IntoSystemConfigs, IntoSystemSetConfig, Plugin,
-        Query, RemovedComponents, Res, SystemSet, Transform, Visibility,
+        Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfig, Plugin,
+        Query, RemovedComponents, Res, SystemSet, Transform, Visibility, Update,
     },
     time::Time,
 };
@@ -67,12 +67,20 @@ pub struct ChunkAppearanceAnimatorSet;
 impl Plugin for ChunkAppearanceAnimatorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.configure_set(
+            Update,
             ChunkAppearanceAnimatorSet
                 .after(ChunkMeshingSet)
-                .before(CoreSet::UpdateFlush),
+                // .before(UpdateFlush)
         )
+        // app.configure_set(
+        //     ChunkAppearanceAnimatorSet
+        //         .after(ChunkMeshingSet)
+        //         .before(CoreSet::UpdateFlush),
+        // )
         .add_systems(
-            (step_chunk_animation, attach_chunk_animation).in_set(ChunkAppearanceAnimatorSet),
+            Update,
+            (step_chunk_animation, attach_chunk_animation)
+                .in_set(ChunkAppearanceAnimatorSet),
         );
     }
 }

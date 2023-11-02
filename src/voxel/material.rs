@@ -35,6 +35,7 @@ macro_rules! voxel_material {
     ($types: ident, $id: expr) => {
         pub struct $types;
         impl $types {
+            #[allow(dead_code)] // NAME is used but compiler complains about it anyways. weird.
             pub const NAME: &'static str = stringify!($types);
         }
         impl $crate::voxel::material::VoxelMaterial for $types {

@@ -1,9 +1,9 @@
 use bevy::{
-    diagnostic::{Diagnostics, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin},
+    diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin, DiagnosticsStore},
     input::{keyboard::KeyboardInput, ButtonState},
     prelude::{
-        Color, CoreSet, EventReader, IntoSystemConfig, IntoSystemConfigs, IntoSystemSetConfigs,
-        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With,
+        Color, EventReader, IntoSystemConfigs, IntoSystemSetConfigs,
+        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With, Update,
     }, app::AppExit, window::{Window, PrimaryWindow, WindowMode},
 };
 use bevy_egui::{
@@ -19,7 +19,7 @@ use crate::voxel::{
     CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U,
 };
 
-fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<Diagnostics>) {
+fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
     egui::Window::new("performance stuff").show(egui.ctx_mut(), |ui| {
         ui.label(format!(
             "Avg. FPS: {:.02}",
@@ -332,26 +332,27 @@ pub struct DebugUIPlugins;
 
 impl Plugin for DebugUIPlugins {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(EguiPlugin)
+        app.add_plugins(EguiPlugin)
             // .add_plugin(FrameTimeDiagnosticsPlugin)
             // .add_plugin(DebugLinesPlugin::with_depth_test(true))
-            .add_plugin(DebugLinesPlugin::default())
-            .add_plugin(EntityCountDiagnosticsPlugin)
-            .add_systems((
+            .add_plugins(DebugLinesPlugin::default())
+            .add_plugins(EntityCountDiagnosticsPlugin)
+            .add_systems(Update, (
                 toggle_debug_ui_displays.in_set(DebugUISet::Toggle),
                 display_material_editor
                     .in_set(DebugUISet::Display)
                     .run_if(display_mat_debug_ui_criteria),
             ))
             .add_systems(
+                Update,
                 (display_debug_stats, display_main_stats, display_player_settings, display_window_settings)
                     .in_set(DebugUISet::Display)
                     .distributive_run_if(display_debug_ui_criteria),
             )
             .configure_sets(
+                Update,
                 (DebugUISet::Toggle, DebugUISet::Display)
                     .chain()
-                    .in_base_set(CoreSet::Update)
                     .after(EguiSet::ProcessInput),
             )
             // .init_resource::<DebugUIState>();

@@ -126,7 +126,7 @@ pub fn handle_player_inputs(
             }
         }
 
-        if keys.pressed(KeyCode::LShift) {
+        if keys.pressed(KeyCode::ShiftLeft) {
             acceleration *= settings.sprint_speed_mult;
         } else {
             acceleration = 1.0f32;
@@ -142,7 +142,7 @@ pub fn handle_player_inputs(
                         KeyCode::S => velocity -= forward,
                         KeyCode::D => velocity += right,
                         KeyCode::Space => velocity += Vec3::Y,
-                        KeyCode::LControl => velocity -= Vec3::Y,
+                        KeyCode::ControlLeft => velocity -= Vec3::Y,
                         _ => (),
                     }
                 }
@@ -250,9 +250,12 @@ pub struct VoxelWorldPlayerControllerPlugin;
 
 impl Plugin for VoxelWorldPlayerControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(init_input)
-            .add_system(grab_cursor.in_base_set(CoreSet::Update).after(DebugUISet::Display))
-            .add_system(handle_player_inputs.in_base_set(CoreSet::Update));
+        app.add_systems(Startup, init_input)
+            .add_systems(Update, grab_cursor.after(DebugUISet::Display))
+            .add_systems(Update, handle_player_inputs);
+        // app.add_startup_system(init_input)
+        //     .add_system(grab_cursor.in_base_set(CoreSet::Update).after(DebugUISet::Display))
+        //     .add_system(handle_player_inputs.in_base_set(CoreSet::Update));
         // app.add_systems(
         //     (handle_player_inputs)
         //         .chain()

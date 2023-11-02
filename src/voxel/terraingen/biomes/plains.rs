@@ -1,11 +1,8 @@
 use crate::voxel::{
     material::VoxelMaterial,
-    materials::{Dirt, Grass, Leaves, Wood, Rock},
+    materials::{Dirt, Grass},
     storage::VoxelBuffer,
-    terraingen::{
-        common::{make_rock, make_tree},
-        noise,
-    },
+    terraingen::noise,
     ChunkShape, Voxel,
 };
 use bevy::math::{IVec3, UVec3, Vec2, Vec3Swizzles};

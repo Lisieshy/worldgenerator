@@ -1,7 +1,6 @@
 use std::ops::{Add, Mul};
 
 use bevy::math::{IVec3, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
-use noise::{utils::NoiseMapBuilder, MultiFractal, Perlin, Seedable, Curve, Blend, ScaleBias};
 
 use simdnoise::*;
 

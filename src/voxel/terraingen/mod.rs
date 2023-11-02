@@ -1,10 +1,10 @@
 use float_ord::FloatOrd;
-use ilattice::prelude::{Extent, UVec2, UVec3};
-use std::{collections::BTreeMap, sync::RwLock, ops::{Sub, Add, Mul}};
+use ilattice::prelude::{Extent, UVec2};
+use std::{collections::BTreeMap, sync::RwLock };
 
 use bevy::{
-    math::{IVec3, Vec3Swizzles, Vec2},
-    prelude::{Plugin, info},
+    math::IVec3,
+    prelude::Plugin,
 };
 use once_cell::sync::Lazy;
 
@@ -14,7 +14,7 @@ use self::{
     noise::{Heightmap, get_chunk_continentalness, get_chunk_erosion, get_chunk_peaks_valleys},
 };
 
-use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH, materials::{Water, Rock, Void}, material::{VoxelMaterial}, CHUNK_HEIGHT};
+use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH, materials::Rock, material::VoxelMaterial };
 
 pub mod biomes;
 
@@ -112,19 +112,12 @@ impl TerrainGenerator {
                 surface_level += ((continentalness.getf(pos.into()) * 0.5 + erosion.getf(pos.into()) * 0.3 + peaks_valleys.getf(pos.into()) * 0.2)) as i32;
                 // surface_level += erosion.getf(pos.into()) as i32;
 
-                // surface_level += continentalness
-                //     .getf(pos.into())
-                //     .mul_add(
-                //         peaks_valleys.getf(pos.into()).mul_add(2.0, 50.0),
-                //         erosion.getf(pos.into()).mul_add(2.0, 50.0),
-                //     ) as u32;
-
                 for h in 0..surface_level {
                     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Rock::into_voxel();
                 }
-                for h in surface_level..64 {
-                    *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
-                }
+                // for h in surface_level..64 {
+                //     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
+                // }
                 surface_level = 62;
             });
 
