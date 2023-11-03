@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfig, Plugin,
-        Query, RemovedComponents, Res, SystemSet, Transform, Visibility, Update,
+        Query, RemovedComponents, Res, SystemSet, Transform, Visibility, Update, PostUpdate,
     },
     time::Time,
 };
@@ -11,8 +11,8 @@ use super::{
     Chunk,
 };
 
-const ANIMATION_DURATION: f32 = 0.8;
-const ANIMATION_HEIGHT: f32 = 256.;
+const ANIMATION_DURATION: f32 = 0.1;
+const ANIMATION_HEIGHT: f32 = 0.;
 
 #[derive(Component)]
 pub struct ChunkSpawnAnimation {
@@ -67,7 +67,7 @@ pub struct ChunkAppearanceAnimatorSet;
 impl Plugin for ChunkAppearanceAnimatorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.configure_set(
-            Update,
+            PostUpdate,
             ChunkAppearanceAnimatorSet
                 .after(ChunkMeshingSet)
                 // .before(UpdateFlush)

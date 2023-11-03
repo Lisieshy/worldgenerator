@@ -1,6 +1,6 @@
 
 
-# Project used and licenses
+# Projects used and licenses
 
 ## [vx_bevy](https://github.com/Game4all/vx_bevy) MIT License
 

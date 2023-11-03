@@ -38,10 +38,6 @@ pub fn prepare_chunks(
             },
             Aabb::from_min_max(Vec3::ZERO, Vec3::new(CHUNK_LENGTH as f32, CHUNK_HEIGHT as f32, CHUNK_LENGTH as f32)),
         ));
-        // There is no need to cast shadows for chunks below the surface.
-        if chunk_key.0.y <= 64 {
-            entity_commands.insert(NotShadowCaster);
-        }
     }
 }
 

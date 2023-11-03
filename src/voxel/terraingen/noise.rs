@@ -101,12 +101,17 @@ pub fn get_chunk_erosion(key: IVec3, chunk_len: usize) -> Vec<f32> {
     //     .map(|x| x as f32)
     //     .collect()
 
-    let (noise, _min, _max) = NoiseBuilder::fbm_2d_offset(key.x as f32, chunk_len, key.z as f32, chunk_len).generate();
+    let (noise, _min, _max) = NoiseBuilder::fbm_2d_offset(key.x as f32, chunk_len, key.z as f32, chunk_len)
+    .with_freq(0.0025)
+    .with_lacunarity(2.0)
+    .with_octaves(6)
+    .with_gain(0.5)
+    .generate();
 
     // scales the noise
     let noise = noise
         .into_iter()
-        .map(|x| x.abs() * 250.0)
+        .map(|x| x.abs() * 700.0)
         .collect();
     noise
 }
@@ -140,12 +145,17 @@ pub fn get_chunk_peaks_valleys(key: IVec3, chunk_len: usize) -> Vec<f32> {
     //     .into_iter()
     //     .map(|x| x as f32)
     //     .collect()
-    let (noise, _min, _max) = NoiseBuilder::fbm_2d_offset(key.x as f32, chunk_len, key.z as f32, chunk_len).generate();
+    let (noise, _min, _max) = NoiseBuilder::fbm_2d_offset(key.x as f32, chunk_len, key.z as f32, chunk_len)
+    .with_freq(0.004)
+    .with_lacunarity(2.0)
+    .with_octaves(6)
+    .with_gain(0.5)
+    .generate();
 
     // scales the noise
     let noise = noise
         .into_iter()
-        .map(|x| x.abs() * 250.0)
+        .map(|x| x.abs() * 1200.0)
         .collect();
     noise
 }
@@ -175,12 +185,17 @@ pub fn get_chunk_continentalness(key: IVec3, chunk_len: usize) -> Vec<f32> {
     //     .into_iter()
     //     .map(|x| x as f32)
     //     .collect()
-    let (noise, _min, _max) = NoiseBuilder::fbm_2d_offset(key.x as f32, chunk_len, key.z as f32, chunk_len).generate();
+    let (noise, _min, _max) = NoiseBuilder::fbm_2d_offset(key.x as f32, chunk_len, key.z as f32, chunk_len)
+    .with_freq(0.0018)
+    .with_lacunarity(2.0)
+    .with_octaves(6)
+    .with_gain(0.5)
+    .generate();
 
     // scales the noise
     let noise = noise
         .into_iter()
-        .map(|x| x.abs() * 250.0)
+        .map(|x| x.abs() * 1400.0)
         .collect();
     noise
 }
