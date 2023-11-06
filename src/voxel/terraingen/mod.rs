@@ -121,7 +121,7 @@ impl TerrainGenerator {
                 surface_level = 64;
             });
 
-
+        *buffer.voxel_at_mut([0, 100, 0].into()) = Rock::into_voxel();
 
 
         terrain_generate_world_bottom_border(buffer);

@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use bevy::{
     diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin, DiagnosticsStore},
     input::{keyboard::KeyboardInput, ButtonState},
@@ -113,6 +115,8 @@ fn display_player_settings(
         ui.add(Slider::new(&mut settings.fov, 30.0..=120.0f32));
         ui.label(format!("Camera yaw: {}", controller.yaw.to_degrees()));
         ui.label(format!("Camera pitch: {}", controller.pitch.to_degrees()));
+        ui.label(format!("Looking at: {}", endpoint));
+        ui.label(format!("Transform Position: {}", transform.translation));
     });
 
     lines.line_colored(

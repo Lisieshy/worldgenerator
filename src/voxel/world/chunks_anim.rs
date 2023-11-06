@@ -1,35 +1,30 @@
-use bevy::{
-    prelude::{
-        Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfig, Plugin,
-        Query, RemovedComponents, Res, SystemSet, Transform, Visibility, Update, PostUpdate,
-    },
-    time::Time,
-};
+use bevy::prelude::{
+        IntoSystemConfigs, IntoSystemSetConfig, Plugin,
+        Query, RemovedComponents, SystemSet, Transform, Visibility, Update, PostUpdate,
+    };
 
 use super::{
     meshing::{ChunkMeshingSet, ChunkMeshingTask},
     Chunk,
 };
 
-const ANIMATION_DURATION: f32 = 0.1;
-const ANIMATION_HEIGHT: f32 = 0.;
+// const ANIMATION_DURATION: f32 = 0.1;
+const ANIMATION_HEIGHT: f32 = 1.;
 
-#[derive(Component)]
-pub struct ChunkSpawnAnimation {
-    start_time: f32,
-}
+// #[derive(Component)]
+// pub struct ChunkSpawnAnimation {
+//     start_time: f32,
+// }
 
 fn attach_chunk_animation(
     mut ready_chunks: Query<(&mut Transform, &mut Visibility, &Chunk)>,
     mut removed_chunk_meshes: RemovedComponents<ChunkMeshingTask>,
-    time: Res<Time>,
-    mut commands: Commands,
 ) {
     removed_chunk_meshes.iter().for_each(|entity| {
         if ready_chunks.contains(entity) {
-            commands.entity(entity).insert(ChunkSpawnAnimation {
-                start_time: time.elapsed_seconds(),
-            });
+            // commands.entity(entity).insert(ChunkSpawnAnimation {
+            //     start_time: time.elapsed_seconds(),
+            // });
             if let Ok((mut transform, mut visibility, chunk)) = ready_chunks.get_mut(entity) {
                 *visibility = Visibility::Visible;
                 transform.translation.y = chunk.0.y as f32 - ANIMATION_HEIGHT;
@@ -38,25 +33,25 @@ fn attach_chunk_animation(
     });
 }
 
-/// Steps the chunk animation by one frame.
-fn step_chunk_animation(
-    mut chunks: Query<(Entity, &mut Transform, &Chunk, &ChunkSpawnAnimation)>,
-    time: Res<Time>,
-    mut commands: Commands,
-) {
-    chunks.for_each_mut(|(entity, mut transform, _chunk, animation)| {
-        let delta = (time.elapsed_seconds() - animation.start_time).min(ANIMATION_DURATION);
+// /// Steps the chunk animation by one frame.
+// fn step_chunk_animation(
+//     mut chunks: Query<(Entity, &mut Transform, &Chunk, &ChunkSpawnAnimation)>,
+//     time: Res<Time>,
+//     mut commands: Commands,
+// ) {
+//     chunks.for_each_mut(|(entity, mut transform, _chunk, animation)| {
+//         let delta = (time.elapsed_seconds() - animation.start_time).min(ANIMATION_DURATION);
 
-        let ytransform = (1. - (1. - (delta / ANIMATION_DURATION)).powi(5))
-            .mul_add(ANIMATION_HEIGHT, _chunk.0.y as f32 - ANIMATION_HEIGHT);
+//         let ytransform = (1. - (1. - (delta / ANIMATION_DURATION)).powi(5))
+//             .mul_add(ANIMATION_HEIGHT, _chunk.0.y as f32 - ANIMATION_HEIGHT);
 
-        transform.translation.y = ytransform - 1.0;
+//         transform.translation.y = ytransform;
 
-        if delta == ANIMATION_DURATION {
-            commands.entity(entity).remove::<ChunkSpawnAnimation>();
-        }
-    });
-}
+//         if delta == ANIMATION_DURATION {
+//             commands.entity(entity).remove::<ChunkSpawnAnimation>();
+//         }
+//     });
+// }
 
 /// Animates the spawning of chunk entities that come into sight.
 pub struct ChunkAppearanceAnimatorPlugin;
@@ -70,16 +65,11 @@ impl Plugin for ChunkAppearanceAnimatorPlugin {
             PostUpdate,
             ChunkAppearanceAnimatorSet
                 .after(ChunkMeshingSet)
-                // .before(UpdateFlush)
         )
-        // app.configure_set(
-        //     ChunkAppearanceAnimatorSet
-        //         .after(ChunkMeshingSet)
-        //         .before(CoreSet::UpdateFlush),
-        // )
         .add_systems(
             Update,
-            (step_chunk_animation, attach_chunk_animation)
+            // (step_chunk_animation, attach_chunk_animation)
+            (attach_chunk_animation)
                 .in_set(ChunkAppearanceAnimatorSet),
         );
     }

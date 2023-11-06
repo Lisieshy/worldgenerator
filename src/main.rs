@@ -7,7 +7,7 @@
 
 use bevy::{
     prelude::*,
-    diagnostic::FrameTimeDiagnosticsPlugin
+    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin
         // Diagnostics,
     // },
     // app::AppExit,
@@ -40,7 +40,7 @@ fn main() {
         //         .on_failure_continue_to_state(GameState::AssetError)
         // )
         // .add_collection_to_loading_state::<_, MyAssets>(GameState::AssetLoading)
-        .add_plugins(DefaultPlugins
+        .add_plugins((DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "World Gen".to_string(),
@@ -50,11 +50,18 @@ fn main() {
                 ..default()
             })
             .set(ImagePlugin::default_nearest())
+            .set(RenderPlugin {
+                wgpu_settings: WgpuSettings {
+                    features: WgpuFeatures::POLYGON_MODE_LINE,
+                    ..default()
+                },
+            }),
             // .set(AssetPlugin {
             //     watch_for_changes: true,
             //     ..default()
             // })
-        )
+            WireframePlugin,
+        ))
         .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))

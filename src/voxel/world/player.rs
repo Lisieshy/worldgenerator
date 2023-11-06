@@ -6,6 +6,14 @@ use bevy_egui::EguiContexts;
 use std::f32::consts::PI;
 
 use crate::debug::DebugUISet;
+use crate::voxel::Voxel;
+use crate::voxel::material::VoxelMaterial;
+use crate::voxel::storage::ChunkMap;
+
+use super::materials::Wood;
+use super::{ChunkShape, CurrentLocalPlayerChunk, DirtyChunks};
+
+use bevy_mod_raycast::prelude::*;
 
 // Reusing the player controller impl for now.
 
@@ -58,6 +66,14 @@ pub fn handle_player_inputs(
     mut mouse_motion_event_reader: EventReader<MouseMotion>,
     windows: Query<&mut Window>,
     // windows: Query<&Window, With<PrimaryWindow>>,
+
+    // mut chunks_command_queue: ResMut<ChunkCommandQueue>,
+    mut chunks: ResMut<ChunkMap<Voxel, ChunkShape>>,
+    // mut chunk_entities: ResMut<ChunkEntities>,
+    chunk_pos: Res<CurrentLocalPlayerChunk>,
+    mut dirty_chunks: ResMut<DirtyChunks>,
+    mut raycast: Raycast,
+    mut gizmos: Gizmos
 ) {
     let window = windows.single();
     let (mut controller, mut transform) = query.single_mut();
@@ -155,6 +171,10 @@ pub fn handle_player_inputs(
     controller.pitch = controller.pitch.clamp(-1.57, 1.57);
     transform.rotation = Quat::from_axis_angle(Vec3::Y, controller.yaw) * Quat::from_axis_angle(Vec3::X, controller.pitch);
     transform.translation += velocity * settings.speed * acceleration * time.delta_seconds();
+
+    let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
+    let ray = Ray3d::new(transform.translation, direction.normalize());
+    let hits = raycast.debug_cast_ray(ray, &default(), &mut gizmos);
 }
 
 pub fn init_input(

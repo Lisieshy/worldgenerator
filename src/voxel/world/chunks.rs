@@ -4,7 +4,7 @@ use bevy::{
         Changed, Commands, Entity, GlobalTransform, IntoSystemConfigs,
         Plugin, Query, Res, ResMut, Resource, SystemSet, With, Vec3, Update, PostUpdate, Last,
     },
-    utils::{HashMap, HashSet},
+    utils::{HashMap, HashSet}, pbr::wireframe::Wireframe,
 };
 use float_ord::FloatOrd;
 
@@ -101,7 +101,16 @@ fn create_chunks(
     chunks_command_queue
         .create
         .drain(..)
-        .for_each(|request| chunk_entities.attach_entity(request, cmds.spawn(Chunk(request)).id()));
+        .for_each(|request|
+            chunk_entities
+            .attach_entity(
+                request,
+                cmds.spawn((
+                    Chunk(request),
+                    // Wireframe
+                )).id()
+            )
+        );
 }
 
 fn destroy_chunks(
