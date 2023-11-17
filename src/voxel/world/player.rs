@@ -131,7 +131,7 @@ pub fn handle_player_inputs(
             }
         }
     } else {
-        for mouse_move in mouse_motion_event_reader.iter() {
+        for mouse_move in mouse_motion_event_reader.read() {
             match window.cursor.grab_mode {
                 CursorGrabMode::None => (),
                 _ => {
@@ -226,7 +226,7 @@ pub fn grab_cursor(
     mut settings: ResMut<PlayerSettings>,
 ) {
     if let Ok(mut window) = windows.get_single_mut() {
-        for ev in mouse_button_evr.iter() {
+        for ev in mouse_button_evr.read() {
             if ev.button == MouseButton::Left && ev.state.is_pressed() && window.cursor.grab_mode == CursorGrabMode::None  && !egui.ctx_mut().wants_pointer_input() {
                 toggle_grab_mode(&mut window);
             }

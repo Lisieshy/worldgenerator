@@ -1,5 +1,5 @@
 use bevy::prelude::{
-        IntoSystemConfigs, IntoSystemSetConfig, Plugin,
+        IntoSystemConfigs, IntoSystemSetConfigs, Plugin,
         Query, RemovedComponents, SystemSet, Transform, Visibility, Update, PostUpdate,
     };
 
@@ -20,7 +20,7 @@ fn attach_chunk_animation(
     mut ready_chunks: Query<(&mut Transform, &mut Visibility, &Chunk)>,
     mut removed_chunk_meshes: RemovedComponents<ChunkMeshingTask>,
 ) {
-    removed_chunk_meshes.iter().for_each(|entity| {
+    removed_chunk_meshes.read().for_each(|entity| {
         if ready_chunks.contains(entity) {
             // commands.entity(entity).insert(ChunkSpawnAnimation {
             //     start_time: time.elapsed_seconds(),
@@ -61,7 +61,7 @@ pub struct ChunkAppearanceAnimatorSet;
 
 impl Plugin for ChunkAppearanceAnimatorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.configure_set(
+        app.configure_sets(
             PostUpdate,
             ChunkAppearanceAnimatorSet
                 .after(ChunkMeshingSet)

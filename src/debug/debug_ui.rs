@@ -13,7 +13,7 @@ use bevy_egui::{
     EguiContexts, EguiPlugin, EguiSet,
 };
 
-use bevy_prototype_debug_lines::*;
+// use bevy_prototype_debug_lines::*;
 
 use crate::voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
@@ -80,7 +80,7 @@ fn display_window_settings(
 fn display_player_settings(
     mut egui: EguiContexts,
     mut settings: ResMut<PlayerSettings>,
-    mut lines: ResMut<DebugLines>,
+    // mut lines: ResMut<DebugLines>,
     mut query: Query<(&mut PlayerController, &mut Transform)>,
 ) {
     let (controller, transform) = query.single_mut();
@@ -119,29 +119,29 @@ fn display_player_settings(
         ui.label(format!("Transform Position: {}", transform.translation));
     });
 
-    lines.line_colored(
-        endpoint,
-        up_endpoint,
-        0.,
-        Color::GREEN,
-    );
-    lines.line_colored(
-        endpoint,
-        right_endpoint,
-        0.,
-        Color::RED,
-    );
-    lines.line_colored(
-        endpoint,
-        forward_endpoint,
-        0.,
-        Color::BLUE,
-    );
+    // lines.line_colored(
+    //     endpoint,
+    //     up_endpoint,
+    //     0.,
+    //     Color::GREEN,
+    // );
+    // lines.line_colored(
+    //     endpoint,
+    //     right_endpoint,
+    //     0.,
+    //     Color::RED,
+    // );
+    // lines.line_colored(
+    //     endpoint,
+    //     forward_endpoint,
+    //     0.,
+    //     Color::BLUE,
+    // );
 }
 
 fn draw_chunk_borders(
     // mut lines: ResMut<DebugLines>,
-    mut shapes: ResMut<DebugShapes>,
+    // mut shapes: ResMut<DebugShapes>,
     chunk: IVec3,
 ) {
     let length = CHUNK_LENGTH as f32;
@@ -150,11 +150,11 @@ fn draw_chunk_borders(
     let cube_y = chunk.y as f32 + height / 2.;
     let cube_z = chunk.z as f32 + length / 2.;
 
-    shapes
-        .cuboid()
-        .position(Vec3::new(cube_x, cube_y, cube_z))
-        .size(Vec3::new(length, height, length))
-        .color(Color::RED);
+    // shapes
+    //     .cuboid()
+    //     .position(Vec3::new(cube_x, cube_y, cube_z))
+    //     .size(Vec3::new(length, height, length))
+    //     .color(Color::RED);
 
     // for i in 0..=CHUNK_LENGTH {
     //     let i = i as f32;
@@ -180,7 +180,7 @@ fn display_main_stats(
     mut chunk_loading_radius: ResMut<ChunkLoadRadius>,
     mut chunk_command_queue: ResMut<ChunkCommandQueue>,
     // lines: ResMut<DebugLines>,
-    shapes: ResMut<DebugShapes>,
+    // shapes: ResMut<DebugShapes>,
     loaded_chunks: Res<ChunkEntities>,
 ) {
     let chunk_continentalness = terraingen::noise::get_chunk_continentalness(player_pos.chunk_min, CHUNK_LENGTH_U);
@@ -221,7 +221,7 @@ fn display_main_stats(
         // ui.label(format!("Current biome : {}", biome.name()));
     });
 
-    draw_chunk_borders(shapes, player_pos.chunk_min);
+    // draw_chunk_borders(shapes, player_pos.chunk_min);
 }
 
 fn display_debug_ui_criteria(ui_state: Res<DebugUIState>) -> bool {
@@ -236,7 +236,7 @@ fn toggle_debug_ui_displays(
     mut inputs: EventReader<KeyboardInput>,
     mut ui_state: ResMut<DebugUIState>,
 ) {
-    for input in inputs.iter() {
+    for input in inputs.read() {
         match input.key_code {
             Some(key_code) if key_code == KeyCode::F3 && input.state == ButtonState::Pressed => {
                 ui_state.display_debug_info = !ui_state.display_debug_info;
@@ -339,7 +339,7 @@ impl Plugin for DebugUIPlugins {
         app.add_plugins(EguiPlugin)
             // .add_plugin(FrameTimeDiagnosticsPlugin)
             // .add_plugin(DebugLinesPlugin::with_depth_test(true))
-            .add_plugins(DebugLinesPlugin::default())
+            // .add_plugins(DebugLinesPlugin::default())
             .add_plugins(EntityCountDiagnosticsPlugin)
             .add_systems(Update, (
                 toggle_debug_ui_displays.in_set(DebugUISet::Toggle),

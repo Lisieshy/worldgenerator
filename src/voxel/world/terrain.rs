@@ -9,7 +9,7 @@ use crate::voxel::{
 };
 use bevy::{
     prelude::{
-        Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfig,
+        Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfigs,
         Plugin, Query, ResMut, SystemSet, Update,
     },
     tasks::{AsyncComputeTaskPool, Task},
@@ -65,7 +65,7 @@ pub struct TerrainGenSet;
 
 impl Plugin for VoxelWorldTerrainGenPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.configure_set(
+        app.configure_sets(
             Update,
             TerrainGenSet
                 .after(ChunkLoadingSet),
