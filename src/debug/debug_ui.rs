@@ -2,11 +2,11 @@ use std::fmt::format;
 
 use bevy::{
     diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin, DiagnosticsStore},
-    input::{keyboard::KeyboardInput, ButtonState},
+    input::{keyboard::KeyboardInput, ButtonState, Input},
     prelude::{
         Color, EventReader, IntoSystemConfigs, IntoSystemSetConfigs,
         KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With, Update,
-    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode},
+    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::{self, gizmos::Gizmos, GizmoConfig}, pbr::wireframe::WireframeConfig,
 };
 use bevy_egui::{
     egui::{self, Rgba, Slider, Button},
@@ -232,20 +232,26 @@ fn display_mat_debug_ui_criteria(ui_state: Res<DebugUIState>) -> bool {
 }
 
 fn toggle_debug_ui_displays(
-    mut inputs: EventReader<KeyboardInput>,
+    keys: Res<Input<KeyCode>>,
     mut ui_state: ResMut<DebugUIState>,
+    mut gizmos_config: ResMut<GizmoConfig>,
+    mut _wireframe_config: ResMut<WireframeConfig>,
 ) {
-    for input in inputs.read() {
-        match input.key_code {
-            Some(key_code) if key_code == KeyCode::F3 && input.state == ButtonState::Pressed => {
-                ui_state.display_debug_info = !ui_state.display_debug_info;
-            }
-            Some(key_code) if key_code == KeyCode::F7 && input.state == ButtonState::Pressed => {
-                ui_state.display_mat_debug = !ui_state.display_mat_debug;
-            }
-            _ => {}
-        }
-    }
+    let f3 = keys.pressed(KeyCode::F3);
+    let _f7 = keys.pressed(KeyCode::F7);
+    let _shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
+
+    if keys.just_pressed(KeyCode::F3) {
+        ui_state.display_debug_info = !ui_state.display_debug_info;
+    };
+
+    if keys.just_pressed(KeyCode::F7) {
+        ui_state.display_mat_debug = !ui_state.display_mat_debug;
+    };
+
+    if f3 && keys.just_pressed(KeyCode::X) {
+        gizmos_config.enabled = !gizmos_config.enabled;
+    };
 }
 
 fn display_material_editor(

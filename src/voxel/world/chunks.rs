@@ -111,10 +111,8 @@ fn create_chunks(
                 request,
                 cmds.spawn((
                     Chunk(request),
-                    AabbGizmo {
-                        color: Some(Color::ORANGE),
-                    },
-                    Wireframe
+                    AabbGizmo { ..Default::default() },
+                    // Wireframe
                 )).id()
             )
         );

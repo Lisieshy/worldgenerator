@@ -176,12 +176,12 @@ pub fn handle_player_inputs(
 
     let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
     let ray = Ray3d::new(transform.translation, direction.normalize());
-    let hits = match raycast.debug_cast_ray(ray, &default(), &mut gizmos) {
+    let hits = match raycast.cast_ray(ray, &default()) {
         &[(_entity, ref data), ..] => Some(data),
         &[] => None,
     };
 
-    if mouse_buttons.just_pressed(MouseButton::Right) {
+    if mouse_buttons.just_pressed(MouseButton::Right) && window.cursor.grab_mode != CursorGrabMode::None {
         // thanks to Zatmos (https://www.zatmos.xyz) for the monadic style
         let in_range_hit = |hit: &IntersectionData| match hit.distance() {
             x if x < 20.0 => Some((hit.position(), hit.normal())),
@@ -212,7 +212,7 @@ pub fn handle_player_inputs(
             .map(place_block);
     }
 
-    if mouse_buttons.just_pressed(MouseButton::Left) {
+    if mouse_buttons.just_pressed(MouseButton::Left) && window.cursor.grab_mode != CursorGrabMode::None {
         // thanks to Zatmos (https://www.zatmos.xyz) for the monadic style
         let in_range_hit = |hit: &IntersectionData| match hit.distance() {
             x if x < 20.0 => Some((hit.position(), hit.normal())),

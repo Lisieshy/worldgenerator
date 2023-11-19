@@ -36,7 +36,7 @@ pub fn prepare_chunks(
                 visibility: Visibility::Hidden,
                 ..Default::default()
             },
-            // Aabb::from_min_max(Vec3::ZERO, Vec3::new(CHUNK_LENGTH as f32, CHUNK_HEIGHT as f32, CHUNK_LENGTH as f32)),
+            Aabb::from_min_max(Vec3::new(1., 1., 1.), Vec3::new(CHUNK_LENGTH as f32 + 1., CHUNK_HEIGHT as f32 + 1., CHUNK_LENGTH as f32 + 1.)),
         ));
     }
 }
@@ -96,9 +96,8 @@ fn process_mesh_tasks(
             // Removing the AABB to force bevy to recalculate it.
             // https://github.com/bevyengine/bevy/issues/4294
             commands.entity(entity)
-                .remove::<ChunkMeshingTask>()
-                .remove::<bevy::render::primitives::Aabb>();
-            
+                .remove::<ChunkMeshingTask>();
+                // .remove::<bevy::render::primitives::Aabb>();
         }
     });
 }
