@@ -18,7 +18,7 @@ use bevy_egui::{
 use crate::voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
-    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U,
+    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings,
 };
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
@@ -83,7 +83,7 @@ fn display_player_settings(
     // mut lines: ResMut<DebugLines>,
     mut query: Query<(&mut PlayerController, &mut Transform)>,
 ) {
-    let (controller, transform) = query.single_mut();
+    let (controller, _) = query.single_mut();
 
     // let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
 
@@ -115,7 +115,6 @@ fn display_player_settings(
         ui.add(Slider::new(&mut settings.fov, 30.0..=120.0f32));
         ui.label(format!("Camera yaw: {}", controller.yaw.to_degrees()));
         ui.label(format!("Camera pitch: {}", controller.pitch.to_degrees()));
-        ui.label(format!("Transform Position: {}", transform.translation));
     });
 
     // lines.line_colored(
@@ -178,20 +177,21 @@ fn display_main_stats(
     player_pos: Res<CurrentLocalPlayerChunk>,
     mut chunk_loading_radius: ResMut<ChunkLoadRadius>,
     mut chunk_command_queue: ResMut<ChunkCommandQueue>,
+    world_settings: ResMut<WorldSettings>,
     // lines: ResMut<DebugLines>,
     // shapes: ResMut<DebugShapes>,
     loaded_chunks: Res<ChunkEntities>,
 ) {
-    let chunk_continentalness = terraingen::noise::get_chunk_continentalness(player_pos.chunk_min, CHUNK_LENGTH_U);
+    let chunk_continentalness = terraingen::noise::get_chunk_continentalness(player_pos.chunk_min, CHUNK_LENGTH_U, world_settings.seed);
     let continentalness = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&chunk_continentalness);
-    let chunk_erosion = terraingen::noise::get_chunk_erosion(player_pos.chunk_min, CHUNK_LENGTH_U);
+    let chunk_erosion = terraingen::noise::get_chunk_erosion(player_pos.chunk_min, CHUNK_LENGTH_U, world_settings.seed);
     let erosion = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&chunk_erosion);
-    let chunk_peaks_valleys = terraingen::noise::get_chunk_peaks_valleys(player_pos.chunk_min, CHUNK_LENGTH_U);
+    let chunk_peaks_valleys = terraingen::noise::get_chunk_peaks_valleys(player_pos.chunk_min, CHUNK_LENGTH_U, world_settings.seed);
     let peaks_valleys = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&chunk_peaks_valleys);
 
     let pos_in_chunk = player_pos.world_pos - player_pos.chunk_min.as_vec3();
 
-    egui::Window::new("voxel world stuff").show(egui.ctx_mut(), |ui| {
+    egui::Window::new(format!("{} info", world_settings.name)).show(egui.ctx_mut(), |ui| {
         ui.heading("Chunks");
         ui.label(format!(
             "Chunks invalidations (per frame):  {}",
@@ -209,11 +209,12 @@ fn display_main_stats(
         ui.separator();
 
         ui.heading("Current player position");
-        ui.label(format!("Current position : {}", player_pos.world_pos));
-        ui.label(format!("Current chunk : {:?}", player_pos.chunk_min));
-        ui.label(format!("Current position in chunk : {}", pos_in_chunk));
+        ui.label(format!("Current position : X: {:.3}, Y: {:.3}, Z: {:.3}", player_pos.world_pos.x, player_pos.world_pos.y, player_pos.world_pos.z));
+        ui.label(format!("Current chunk : X: {:.3}, Y: {:.3}, Z: {:.3}", player_pos.chunk_min.x, player_pos.chunk_min.y, player_pos.chunk_min.z));
+        ui.label(format!("Current position in chunk : X: {:.3}, Y: {:.3}, Z: {:.3}", pos_in_chunk.x, pos_in_chunk.y, pos_in_chunk.z));
         ui.separator();
         ui.heading("Noise info");
+        ui.label(format!("Seed: {}", world_settings.seed));
         ui.label(format!("Continentalness : {}", continentalness.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
         ui.label(format!("Erosion : {}", erosion.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
         ui.label(format!("Peaks&Valleys : {}", peaks_valleys.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));

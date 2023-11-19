@@ -1,6 +1,6 @@
 use bevy::{
     math::IVec3,
-    prelude::{Component, Plugin},
+    prelude::{Component, Plugin}, ecs::system::Resource,
 };
 use ndshape::ConstShape3u32;
 
@@ -19,12 +19,22 @@ pub mod player;
 mod sky;
 mod terrain;
 
+#[derive(Resource)]
+pub struct WorldSettings {
+    pub seed: i32,
+    pub name: String,
+}
+
 /// Registers all resources and systems for simulating and rendering an editable and interactive voxel world.
 pub struct VoxelWorldPlugin;
 
 impl Plugin for VoxelWorldPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(ChunkMap::<Voxel, ChunkShape>::new(ChunkShape {}))
+            .insert_resource(WorldSettings {
+                seed: 0,
+                name: "World".to_string(),
+            })
             .add_plugins(chunks::VoxelWorldChunkingPlugin)
             .add_plugins(meshing::VoxelWorldMeshingPlugin)
             // ordering of plugin insertion matters here.

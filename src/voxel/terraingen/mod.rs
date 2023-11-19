@@ -94,11 +94,11 @@ impl TerrainGenerator {
         //     .map_or(self.biomes_map.first_key_value().unwrap().1, |x| x.1)
     }
 
-    pub fn generate(&self, chunk_key: IVec3, buffer: &mut VoxelBuffer<Voxel, ChunkShape>) {
+    pub fn generate(&self, chunk_key: IVec3, buffer: &mut VoxelBuffer<Voxel, ChunkShape>, seed: i32) {
 
-        let continentalness_noise = get_chunk_continentalness(chunk_key, CHUNK_LENGTH_U);
-        let erosion_noise = get_chunk_erosion(chunk_key, CHUNK_LENGTH_U);
-        let peaks_valleys_noise = get_chunk_peaks_valleys(chunk_key, CHUNK_LENGTH_U);
+        let continentalness_noise = get_chunk_continentalness(chunk_key, CHUNK_LENGTH_U, seed);
+        let erosion_noise = get_chunk_erosion(chunk_key, CHUNK_LENGTH_U, seed);
+        let peaks_valleys_noise = get_chunk_peaks_valleys(chunk_key, CHUNK_LENGTH_U, seed);
 
         let continentalness = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&continentalness_noise);
         let erosion = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&erosion_noise);

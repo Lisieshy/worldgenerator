@@ -75,7 +75,7 @@ pub fn voronoi(p: Vec2) -> Vec2 {
     closest_point
 }
 
-pub fn get_chunk_erosion(key: IVec3, chunk_len: usize) -> Vec<f32> {
+pub fn get_chunk_erosion(key: IVec3, chunk_len: usize, seed: i32) -> Vec<f32> {
     // Erosion noise
     // let erosion_noise = noise::Fbm::<Perlin>::new(248) //@todo : use random seed
     //     .set_octaves(6)
@@ -106,6 +106,7 @@ pub fn get_chunk_erosion(key: IVec3, chunk_len: usize) -> Vec<f32> {
     .with_lacunarity(2.0)
     .with_octaves(6)
     .with_gain(0.5)
+    .with_seed(seed)
     .generate();
 
     // scales the noise
@@ -117,7 +118,7 @@ pub fn get_chunk_erosion(key: IVec3, chunk_len: usize) -> Vec<f32> {
 }
 
 
-pub fn get_chunk_peaks_valleys(key: IVec3, chunk_len: usize) -> Vec<f32> {
+pub fn get_chunk_peaks_valleys(key: IVec3, chunk_len: usize, seed: i32) -> Vec<f32> {
     // let peaks_valleys_noise = noise::Fbm::<noise::SuperSimplex>::new(5238532) //@todo : use random seed
     //     .set_octaves(6)
     //     .set_lacunarity(2.0)
@@ -150,6 +151,7 @@ pub fn get_chunk_peaks_valleys(key: IVec3, chunk_len: usize) -> Vec<f32> {
     .with_lacunarity(2.0)
     .with_octaves(6)
     .with_gain(0.5)
+    .with_seed(seed)
     .generate();
 
     // scales the noise
@@ -160,7 +162,7 @@ pub fn get_chunk_peaks_valleys(key: IVec3, chunk_len: usize) -> Vec<f32> {
     noise
 }
 
-pub fn get_chunk_continentalness(key: IVec3, chunk_len: usize) -> Vec<f32> {
+pub fn get_chunk_continentalness(key: IVec3, chunk_len: usize, seed: i32) -> Vec<f32> {
     // // Continentalness noise
     // let continental_noise = noise::Fbm::<Perlin>::new(0)
     //     .set_octaves(6)
@@ -190,6 +192,7 @@ pub fn get_chunk_continentalness(key: IVec3, chunk_len: usize) -> Vec<f32> {
     .with_lacunarity(2.0)
     .with_octaves(6)
     .with_gain(0.5)
+    .with_seed(seed)
     .generate();
 
     // scales the noise

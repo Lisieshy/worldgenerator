@@ -16,9 +16,6 @@ use super::{ChunkShape, CurrentLocalPlayerChunk, DirtyChunks};
 
 use bevy_mod_raycast::prelude::*;
 
-// Reusing the player controller impl for now.
-
-// pub const DEFAULT_CAMERA_SENS: f32 = 0.005;
 
 #[derive(Default, Component)]
 pub struct PlayerController {

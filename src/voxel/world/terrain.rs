@@ -1,6 +1,6 @@
 use super::{
     chunks::{ChunkLoadingSet, DirtyChunks},
-    Chunk, ChunkShape,
+    Chunk, ChunkShape, WorldSettings,
 };
 use crate::voxel::{
     storage::{ChunkMap, VoxelBuffer},
@@ -17,8 +17,14 @@ use bevy::{
 use futures_lite::future;
 
 /// Queues the terrain gen async tasks for the newly created chunks.
-fn queue_terrain_gen(mut commands: Commands, new_chunks: Query<(Entity, &Chunk), Added<Chunk>>) {
+fn queue_terrain_gen(
+    mut commands: Commands,
+    new_chunks: Query<(Entity, &Chunk), Added<Chunk>>,
+    mut world_settings: ResMut<WorldSettings>,
+) {
     let task_pool = AsyncComputeTaskPool::get();
+
+    let seed = world_settings.seed;
 
     new_chunks
         .iter()
@@ -31,7 +37,7 @@ fn queue_terrain_gen(mut commands: Commands, new_chunks: Query<(Entity, &Chunk),
                     TERRAIN_GENERATOR
                         .read()
                         .unwrap()
-                        .generate(key, &mut chunk_data);
+                        .generate(key, &mut chunk_data, seed);
                     chunk_data
                 }))),
             )
