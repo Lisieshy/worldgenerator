@@ -4,13 +4,22 @@ use bevy::{
         Changed, Commands, Entity, GlobalTransform, IntoSystemConfigs,
         Plugin, Query, Res, ResMut, Resource, SystemSet, With, Vec3, Update, PostUpdate, Last,
     },
-    utils::{HashMap, HashSet}, pbr::wireframe::Wireframe,
+    utils::{HashMap, HashSet}, pbr::wireframe::Wireframe, gizmos::AabbGizmo, render::color::Color,
 };
 use float_ord::FloatOrd;
 
 use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH};
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::Voxel;
+
+/// Gets the chunk for any given position.
+fn get_chunk_for_pos(pos: Vec3) -> Vec3 {
+    Vec3::new(
+        pos.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
+        0f32,
+        pos.z.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
+    )
+}
 
 /// Updates the current chunk position for the current player.
 fn update_player_pos(
@@ -20,12 +29,14 @@ fn update_player_pos(
     if let Ok(ply) = player.get_single() {
         let player_coords = ply.translation();
 
-        let nearest_chunk_origin = Vec3::new(
-            player_coords.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
-            // player_coords.y.div_euclid(CHUNK_HEIGHT as f32) * CHUNK_HEIGHT as f32,
-            0f32,
-            player_coords.z.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32
-        );
+        let nearest_chunk_origin = get_chunk_for_pos(player_coords);
+        // let nearest_chunk_origin = Vec3::new(
+        //     player_coords.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
+        //     // player_coords.y.div_euclid(CHUNK_HEIGHT as f32) * CHUNK_HEIGHT as f32,
+        //     0f32,
+        //     player_coords.z.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32
+        // );
+
 
         chunk_pos.world_pos = player_coords;
         if chunk_pos.chunk_min != nearest_chunk_origin.as_ivec3() {
@@ -107,7 +118,10 @@ fn create_chunks(
                 request,
                 cmds.spawn((
                     Chunk(request),
-                    // Wireframe
+                    AabbGizmo {
+                        color: Some(Color::ORANGE),
+                    },
+                    Wireframe
                 )).id()
             )
         );

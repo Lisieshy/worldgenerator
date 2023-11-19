@@ -9,7 +9,7 @@ use super::{
 };
 
 // const ANIMATION_DURATION: f32 = 0.1;
-const ANIMATION_HEIGHT: f32 = 1.;
+// const ANIMATION_HEIGHT: f32 = 1.;
 
 // #[derive(Component)]
 // pub struct ChunkSpawnAnimation {
@@ -27,7 +27,7 @@ fn attach_chunk_animation(
             // });
             if let Ok((mut transform, mut visibility, chunk)) = ready_chunks.get_mut(entity) {
                 *visibility = Visibility::Visible;
-                transform.translation.y = chunk.0.y as f32 - ANIMATION_HEIGHT;
+                transform.translation.y = chunk.0.y as f32;
             };
         }
     });

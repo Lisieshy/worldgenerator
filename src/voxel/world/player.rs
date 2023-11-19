@@ -64,13 +64,14 @@ pub fn handle_player_inputs(
     mut proj_q: Query<&mut Projection, With<Camera>>,
     mut query: Query<(&mut PlayerController, &mut Transform)>,
     mut mouse_motion_event_reader: EventReader<MouseMotion>,
+    mouse_buttons: Res<Input<MouseButton>>,
     windows: Query<&mut Window>,
     // windows: Query<&Window, With<PrimaryWindow>>,
 
     // mut chunks_command_queue: ResMut<ChunkCommandQueue>,
     mut chunks: ResMut<ChunkMap<Voxel, ChunkShape>>,
     // mut chunk_entities: ResMut<ChunkEntities>,
-    chunk_pos: Res<CurrentLocalPlayerChunk>,
+    // chunk_pos: Res<CurrentLocalPlayerChunk>,
     mut dirty_chunks: ResMut<DirtyChunks>,
     mut raycast: Raycast,
     mut gizmos: Gizmos
@@ -174,7 +175,21 @@ pub fn handle_player_inputs(
 
     let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
     let ray = Ray3d::new(transform.translation, direction.normalize());
-    let hits = raycast.debug_cast_ray(ray, &default(), &mut gizmos);
+    let hits = match raycast.debug_cast_ray(ray, &default(), &mut gizmos) {
+        &[(_entity, ref data), ..] => Some(data),
+        &[] => None,
+    };
+
+    if mouse_buttons.just_pressed(MouseButton::Right) {
+        hits.and_then(|hit| match hit.distance() {
+            x if x < 20.0 => Some((hit.position(), hit.normal())),
+            _ => None,
+        }).map(|(pos, normal)| {
+            
+            info!("Raycast hit: {:?} {:?}", pos, normal);
+        });
+        // info!("Raycast hits: {:?}", hits);
+    }
 }
 
 pub fn init_input(

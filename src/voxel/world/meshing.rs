@@ -28,16 +28,16 @@ pub fn prepare_chunks(
 ) {
     for (chunk, chunk_key) in chunks.iter() {
         let mut entity_commands = cmds.entity(chunk);
-        entity_commands.insert((
+        entity_commands.insert(
             MaterialMeshBundle {
                 material: (**material).clone(),
                 mesh: meshes.add(Mesh::new(PrimitiveTopology::TriangleList)),
-                transform: Transform::from_translation(chunk_key.0.as_vec3() + Vec3::new(-1.0, -1.0, -1.0)),
+                transform: Transform::from_translation(chunk_key.0.as_vec3() - Vec3::new(1.0, 1.0, 1.0)),
                 visibility: Visibility::Hidden,
                 ..Default::default()
-            },
-            Aabb::from_min_max(Vec3::ZERO, Vec3::new(CHUNK_LENGTH as f32, CHUNK_HEIGHT as f32, CHUNK_LENGTH as f32)),
-        ));
+            }
+            // Aabb::from_min_max(Vec3::ZERO, Vec3::new(CHUNK_LENGTH as f32, CHUNK_HEIGHT as f32, CHUNK_LENGTH as f32)),
+        );
     }
 }
 
@@ -107,7 +107,7 @@ pub struct VoxelWorldMeshingPlugin;
 
 impl Plugin for VoxelWorldMeshingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.configure_set(
+        app.configure_sets(
             Update,
             ChunkMeshingSet
                 .after(TerrainGenSet)
