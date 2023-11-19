@@ -85,13 +85,13 @@ fn display_player_settings(
 ) {
     let (controller, transform) = query.single_mut();
 
-    let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
+    // let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
 
-    let endpoint = transform.translation + direction * 10.0;
+    // let endpoint = transform.translation + direction * 10.0;
 
-    let up_endpoint = endpoint + Vec3::new(0.0, 1.0, 0.0);
-    let right_endpoint = endpoint + Vec3::new(1.0, 0.0, 0.0);
-    let forward_endpoint = endpoint + Vec3::new(0.0, 0.0, 1.0);
+    // let up_endpoint = endpoint + Vec3::new(0.0, 1.0, 0.0);
+    // let right_endpoint = endpoint + Vec3::new(1.0, 0.0, 0.0);
+    // let forward_endpoint = endpoint + Vec3::new(0.0, 0.0, 1.0);
 
     egui::Window::new("player settings").show(egui.ctx_mut(), |ui| {
         ui.heading("Controller info");
@@ -115,7 +115,6 @@ fn display_player_settings(
         ui.add(Slider::new(&mut settings.fov, 30.0..=120.0f32));
         ui.label(format!("Camera yaw: {}", controller.yaw.to_degrees()));
         ui.label(format!("Camera pitch: {}", controller.pitch.to_degrees()));
-        ui.label(format!("Looking at: {}", endpoint));
         ui.label(format!("Transform Position: {}", transform.translation));
     });
 

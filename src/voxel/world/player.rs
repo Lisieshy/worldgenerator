@@ -9,8 +9,9 @@ use crate::debug::DebugUISet;
 use crate::voxel::Voxel;
 use crate::voxel::material::VoxelMaterial;
 use crate::voxel::storage::ChunkMap;
+use crate::voxel::world::chunks::get_chunk_for_pos;
 
-use super::materials::Wood;
+use super::materials::{Wood, Rock, Void};
 use super::{ChunkShape, CurrentLocalPlayerChunk, DirtyChunks};
 
 use bevy_mod_raycast::prelude::*;
@@ -181,15 +182,67 @@ pub fn handle_player_inputs(
     };
 
     if mouse_buttons.just_pressed(MouseButton::Right) {
-        hits.and_then(|hit| match hit.distance() {
+        // thanks to Zatmos (https://www.zatmos.xyz) for the monadic style
+        let in_range_hit = |hit: &IntersectionData| match hit.distance() {
             x if x < 20.0 => Some((hit.position(), hit.normal())),
             _ => None,
-        }).map(|(pos, normal)| {
-            
-            info!("Raycast hit: {:?} {:?}", pos, normal);
-        });
-        // info!("Raycast hits: {:?}", hits);
+        };
+
+        let place_block = |(pos, normal)| {
+            let pos = pos + normal * 0.5;
+
+            let chunk_pos = get_chunk_for_pos(pos);
+
+            let pos_in_chunk = pos - chunk_pos;
+
+            chunks.buffer_at_mut(chunk_pos.as_ivec3())
+            .map(|buffer| {
+                *buffer.voxel_at_mut([
+                    pos_in_chunk.x as u32,
+                    (pos_in_chunk.y - 1.) as u32,
+                    pos_in_chunk.z as u32,
+                ].into()) = Rock::into_voxel();
+            }).and_then(|_| {
+                dirty_chunks.mark_dirty(chunk_pos.as_ivec3());
+                Some(())
+            });
+        };
+
+        hits.and_then(in_range_hit)
+            .map(place_block);
     }
+
+    if mouse_buttons.just_pressed(MouseButton::Left) {
+        // thanks to Zatmos (https://www.zatmos.xyz) for the monadic style
+        let in_range_hit = |hit: &IntersectionData| match hit.distance() {
+            x if x < 20.0 => Some((hit.position(), hit.normal())),
+            _ => None,
+        };
+
+        let remove_block = |(pos, normal)| {
+            let pos = pos - normal * 0.5;
+
+            let chunk_pos = get_chunk_for_pos(pos);
+
+            let pos_in_chunk = pos - chunk_pos;
+
+            chunks.buffer_at_mut(chunk_pos.as_ivec3())
+            .map(|buffer| {
+                *buffer.voxel_at_mut([
+                    pos_in_chunk.x as u32,
+                    (pos_in_chunk.y - 1.) as u32,
+                    pos_in_chunk.z as u32,
+                ].into()) = Void::into_voxel();
+            }).and_then(|_| {
+                dirty_chunks.mark_dirty(chunk_pos.as_ivec3());
+                Some(())
+            });
+        };
+
+        hits.and_then(in_range_hit)
+            .map(remove_block);
+    }
+
 }
 
 pub fn init_input(

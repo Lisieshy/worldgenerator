@@ -28,16 +28,16 @@ pub fn prepare_chunks(
 ) {
     for (chunk, chunk_key) in chunks.iter() {
         let mut entity_commands = cmds.entity(chunk);
-        entity_commands.insert(
+        entity_commands.insert((
             MaterialMeshBundle {
                 material: (**material).clone(),
                 mesh: meshes.add(Mesh::new(PrimitiveTopology::TriangleList)),
                 transform: Transform::from_translation(chunk_key.0.as_vec3() - Vec3::new(1.0, 1.0, 1.0)),
                 visibility: Visibility::Hidden,
                 ..Default::default()
-            }
+            },
             // Aabb::from_min_max(Vec3::ZERO, Vec3::new(CHUNK_LENGTH as f32, CHUNK_HEIGHT as f32, CHUNK_LENGTH as f32)),
-        );
+        ));
     }
 }
 
@@ -93,7 +93,12 @@ fn process_mesh_tasks(
     chunk_query.for_each_mut(|(entity, handle, mut mesh_task)| {
         if let Some(mesh) = future::block_on(future::poll_once(&mut mesh_task.0)) {
             *meshes.get_mut(handle).unwrap() = mesh;
-            commands.entity(entity).remove::<ChunkMeshingTask>();
+            // Removing the AABB to force bevy to recalculate it.
+            // https://github.com/bevyengine/bevy/issues/4294
+            commands.entity(entity)
+                .remove::<ChunkMeshingTask>()
+                .remove::<bevy::render::primitives::Aabb>();
+            
         }
     });
 }

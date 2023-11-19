@@ -13,7 +13,7 @@ use crate::voxel::storage::ChunkMap;
 use crate::voxel::Voxel;
 
 /// Gets the chunk for any given position.
-fn get_chunk_for_pos(pos: Vec3) -> Vec3 {
+pub fn get_chunk_for_pos(pos: Vec3) -> Vec3 {
     Vec3::new(
         pos.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
         0f32,
@@ -30,13 +30,6 @@ fn update_player_pos(
         let player_coords = ply.translation();
 
         let nearest_chunk_origin = get_chunk_for_pos(player_coords);
-        // let nearest_chunk_origin = Vec3::new(
-        //     player_coords.x.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32,
-        //     // player_coords.y.div_euclid(CHUNK_HEIGHT as f32) * CHUNK_HEIGHT as f32,
-        //     0f32,
-        //     player_coords.z.div_euclid(CHUNK_LENGTH as f32) * CHUNK_LENGTH as f32
-        // );
-
 
         chunk_pos.world_pos = player_coords;
         if chunk_pos.chunk_min != nearest_chunk_origin.as_ivec3() {
