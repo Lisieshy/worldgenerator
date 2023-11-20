@@ -100,7 +100,7 @@ fn display_player_settings(
         ui.separator();
         ui.heading("sensitivity");
         ui.label(format!("Mouse sensitivity"));
-        ui.add(Slider::new(&mut settings.mouse_sensitivity, 0.000001..=0.001f32));
+        ui.add(Slider::new(&mut settings.mouse_sensitivity, 0.01..=1.0f32));
         ui.label(format!("Controller sensitivity"));
         ui.add(Slider::new(&mut settings.gamepad_sensitivity, 0.01..=1.0f32));
         ui.separator();

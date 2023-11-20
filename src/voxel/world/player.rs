@@ -2,7 +2,9 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
 use bevy_egui::EguiContexts;
-// use std::f32::consts::FRAC_PI_2;
+use bevy_vector_shapes::painter::{self, ShapePainter};
+use bevy_vector_shapes::shapes::{DiscPainter, LinePainter, Cap, ThicknessType};
+
 use std::f32::consts::PI;
 
 use crate::debug::DebugUISet;
@@ -11,8 +13,8 @@ use crate::voxel::material::VoxelMaterial;
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::world::chunks::get_chunk_for_pos;
 
-use super::materials::{Wood, Rock, Void};
-use super::{ChunkShape, CurrentLocalPlayerChunk, DirtyChunks};
+use super::materials::{Rock, Void};
+use super::{ChunkShape, DirtyChunks};
 
 use bevy_mod_raycast::prelude::*;
 
@@ -22,7 +24,6 @@ pub struct PlayerController {
     pub yaw: f32,
     pub pitch: f32,
     pub cursor_locked: bool,
-    // pub mouse_motion: ManualEventReader<MouseMotion>,
 }
 
 
@@ -41,7 +42,7 @@ impl Default for PlayerSettings {
     fn default() -> Self {
         Self {
             fov: 80f32,
-            mouse_sensitivity: 0.00012,
+            mouse_sensitivity: 0.12,
             speed: 12.,
             sprint_speed_mult: 2.,
             use_gamepad: false,
@@ -52,27 +53,20 @@ impl Default for PlayerSettings {
 }
 
 pub fn handle_player_inputs(
-    // gamepads: Res<Gamepads>,
     keys: Res<Input<KeyCode>>,
     button_input: Res<Input<GamepadButton>>,
     axes: Res<Axis<GamepadAxis>>,
     time: Res<Time>,
     settings: Res<PlayerSettings>,
-    // motion: Res<Events<MouseMotion>>,
     mut proj_q: Query<&mut Projection, With<Camera>>,
     mut query: Query<(&mut PlayerController, &mut Transform)>,
     mut mouse_motion_event_reader: EventReader<MouseMotion>,
     mouse_buttons: Res<Input<MouseButton>>,
     windows: Query<&mut Window>,
-    // windows: Query<&Window, With<PrimaryWindow>>,
-
-    // mut chunks_command_queue: ResMut<ChunkCommandQueue>,
     mut chunks: ResMut<ChunkMap<Voxel, ChunkShape>>,
-    // mut chunk_entities: ResMut<ChunkEntities>,
-    // chunk_pos: Res<CurrentLocalPlayerChunk>,
     mut dirty_chunks: ResMut<DirtyChunks>,
     mut raycast: Raycast,
-    mut gizmos: Gizmos
+    mut painter: ShapePainter,
 ) {
     let window = windows.single();
     let (mut controller, mut transform) = query.single_mut();
@@ -104,15 +98,14 @@ pub fn handle_player_inputs(
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY))
             ) {
                 let pos = Vec2::new(x, y);
-                let window_scale = window.height().min(window.width());
 
-                controller.yaw -= (settings.gamepad_sensitivity * pos.x * window_scale * time.delta_seconds()).to_radians();
-                controller.pitch += (settings.gamepad_sensitivity * pos.y * window_scale * time.delta_seconds()).to_radians();
+                controller.yaw -= (settings.gamepad_sensitivity * pos.x * time.delta_seconds()).to_radians();
+                controller.pitch += (settings.gamepad_sensitivity * pos.y * time.delta_seconds()).to_radians();
             }
 
             if button_input.pressed(GamepadButton::new(gamepad, GamepadButtonType::LeftTrigger2)) {
                 acceleration *= settings.sprint_speed_mult;
-            } else { 
+            } else {
                 acceleration = 1.0f32;
             }
 
@@ -120,13 +113,8 @@ pub fn handle_player_inputs(
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX)),
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY))
             ) {
-                // if button_input.pressed(GamepadButton::new(gamepad, GamepadButtonType::LeftTrigger2)) {
-                //     velocity += forward * y * settings.sprint_speed_mult;
-                //     velocity += right * x * settings.sprint_speed_mult;
-                // } else {
-                    velocity += forward * y;
-                    velocity += right * x;
-                // }
+                velocity += forward * y;
+                velocity += right * x;
             }
         }
     } else {
@@ -134,9 +122,8 @@ pub fn handle_player_inputs(
             match window.cursor.grab_mode {
                 CursorGrabMode::None => (),
                 _ => {
-                    let window_scale = window.height().min(window.width());
-                    controller.yaw -= (settings.mouse_sensitivity * mouse_move.delta.x * window_scale).to_radians();
-                    controller.pitch -= (settings.mouse_sensitivity * mouse_move.delta.y * window_scale).to_radians();
+                    controller.yaw -= (settings.mouse_sensitivity * mouse_move.delta.x).to_radians();
+                    controller.pitch -= (settings.mouse_sensitivity * mouse_move.delta.y).to_radians();
                 }
             }
         }
@@ -178,12 +165,29 @@ pub fn handle_player_inputs(
         &[] => None,
     };
 
+    let in_range_hit = |hit: &IntersectionData| match hit.distance() {
+        x if x < 20.0 => Some((hit.position(), hit.normal())),
+        _ => None,
+    };
+
+    // // draw bounding box around the block the player is looking at
+    // if let Some((pos, normal)) = hits.and_then(in_range_hit) {
+    //     let pos = pos - normal * 0.5;
+
+    //     painter.set_translation(pos.trunc());
+    //     painter.color = Color::DARK_GRAY;
+    //     painter.cap = Cap::Square;
+    //     painter.thickness_type = ThicknessType::Pixels;
+    //     painter.thickness = 4.;
+    //     // front face
+    //     painter.line(Vec3::new(1.0, 0.0, 0.001), Vec3::new(0.0, 0.0, 0.001));
+    //     painter.line(Vec3::new(0.0, 1.0, 0.001), Vec3::new(0.0, 0.0, 0.001));
+    //     painter.line(Vec3::new(1.0, 0.0, 0.001), Vec3::new(1.0, 1.0, 0.001));
+    //     painter.line(Vec3::new(0.0, 1.0, 0.001), Vec3::new(1.0, 1.0, 0.001));
+    // }
+
     if mouse_buttons.just_pressed(MouseButton::Right) && window.cursor.grab_mode != CursorGrabMode::None {
         // thanks to Zatmos (https://www.zatmos.xyz) for the monadic style
-        let in_range_hit = |hit: &IntersectionData| match hit.distance() {
-            x if x < 20.0 => Some((hit.position(), hit.normal())),
-            _ => None,
-        };
 
         let place_block = |(pos, normal)| {
             let pos = pos + normal * 0.5;
@@ -211,10 +215,6 @@ pub fn handle_player_inputs(
 
     if mouse_buttons.just_pressed(MouseButton::Left) && window.cursor.grab_mode != CursorGrabMode::None {
         // thanks to Zatmos (https://www.zatmos.xyz) for the monadic style
-        let in_range_hit = |hit: &IntersectionData| match hit.distance() {
-            x if x < 20.0 => Some((hit.position(), hit.normal())),
-            _ => None,
-        };
 
         let remove_block = |(pos, normal)| {
             let pos = pos - normal * 0.5;
@@ -320,11 +320,65 @@ pub fn grab_cursor(
                 }
             }
         }
+        if window.cursor.grab_mode != CursorGrabMode::None {
+            let width = window.width() / 2.;
+            let height = window.height() / 2.;
+            window.set_cursor_position(Some(Vec2::new(
+                width,
+                height,
+            )))
+        }
     } else {
-        warn!("No primary window found");
+        unreachable!("No primary window found, something has gone terribly wrong.");
     }
 }
 
+pub fn draw_crosshair(
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
+) {
+    // painter.set_translation(Vec3::NEG_Z);
+    // painter.color = Color::ORANGE;
+    // painter.circle(10.);
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                height: Val::Percent(100.0),
+                width: Val::Percent(100.0),
+                position_type: PositionType::Absolute,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceAround,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn((NodeBundle {
+                    style: Style {
+                        width: Val::Px(16.0),
+                        height: Val::Px(16.0),
+                        ..default()
+                    },
+                    background_color: Color::rgba(1.0, 1.0, 1.0, 0.5).into(),
+                    ..default()
+                },
+                UiImage::new(asset_server.load("textures/crosshair.png")),
+            ))
+            .with_children(|parent| {
+                parent.spawn((
+                    NodeBundle {
+                        style: Style {
+                            display: Display::None,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },
+                    Text::from_section("Crosshair", TextStyle::default()),
+                ));
+            });
+        });
+}
 
 
 #[derive(Hash, Copy, Clone, PartialEq, Eq, Debug, SystemSet)]
@@ -337,7 +391,8 @@ impl Plugin for VoxelWorldPlayerControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, init_input)
             .add_systems(Update, grab_cursor.after(DebugUISet::Display))
-            .add_systems(Update, handle_player_inputs);
+            .add_systems(Update, handle_player_inputs)
+            .add_systems(Startup, draw_crosshair);
         // app.add_startup_system(init_input)
         //     .add_system(grab_cursor.in_base_set(CoreSet::Update).after(DebugUISet::Display))
         //     .add_system(handle_player_inputs.in_base_set(CoreSet::Update));

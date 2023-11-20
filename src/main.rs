@@ -15,6 +15,7 @@ use bevy::{
 // use bevy_embedded_assets::EmbeddedAssetPlugin;
 use voxel::player::PlayerSettings;
 
+use bevy_vector_shapes::prelude::*;
 
 use bevy::core_pipeline::fxaa::Fxaa;
 
@@ -22,6 +23,8 @@ mod systems;
 mod resources;
 mod debug;
 mod voxel;
+
+use directories::{BaseDirs, ProjectDirs};
 
 fn main() {
     let mut app = App::default();
@@ -58,6 +61,7 @@ fn main() {
         ))
         .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_plugins(ShapePlugin::default())
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
         .add_plugins(voxel::VoxelWorldPlugin)
         .add_plugins(debug::DebugUIPlugins)
@@ -73,6 +77,20 @@ fn setup(
     settings: Res<PlayerSettings>,
     mut cmds: Commands
 ) {
+    if let Some(proj_dirs) = ProjectDirs::from("fr", "catgirl", "World Generator") {
+        let data_dir = proj_dirs.data_dir();
+        // std::fs::create_dir_all(data_dir).unwrap();
+        info!("Project Data directory: {}", data_dir.display());
+        let config_dir = proj_dirs.config_dir();
+        // std::fs::create_dir_all(config_dir).unwrap();
+        info!("Config directory: {}", config_dir.display());
+    }
+
+    if let Some(base_dirs) = BaseDirs::new() {
+        let data_dir = base_dirs.data_dir();
+        info!("Base Data directory: {}", data_dir.display());
+    }
+
     cmds.spawn(Camera3dBundle {
         projection: bevy::prelude::Projection::Perspective(PerspectiveProjection {
             fov: settings.fov.to_radians(),

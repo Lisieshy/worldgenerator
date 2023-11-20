@@ -93,11 +93,8 @@ fn process_mesh_tasks(
     chunk_query.for_each_mut(|(entity, handle, mut mesh_task)| {
         if let Some(mesh) = future::block_on(future::poll_once(&mut mesh_task.0)) {
             *meshes.get_mut(handle).unwrap() = mesh;
-            // Removing the AABB to force bevy to recalculate it.
-            // https://github.com/bevyengine/bevy/issues/4294
             commands.entity(entity)
                 .remove::<ChunkMeshingTask>();
-                // .remove::<bevy::render::primitives::Aabb>();
         }
     });
 }
