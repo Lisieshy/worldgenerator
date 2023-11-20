@@ -20,7 +20,7 @@ use futures_lite::future;
 fn queue_terrain_gen(
     mut commands: Commands,
     new_chunks: Query<(Entity, &Chunk), Added<Chunk>>,
-    mut world_settings: ResMut<WorldSettings>,
+    world_settings: ResMut<WorldSettings>,
 ) {
     let task_pool = AsyncComputeTaskPool::get();
 
