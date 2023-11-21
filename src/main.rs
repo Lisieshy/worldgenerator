@@ -5,6 +5,8 @@
 )]
 
 
+use std::path::PathBuf;
+
 use bevy::{
     prelude::*,
     diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin
@@ -23,7 +25,7 @@ mod systems;
 mod debug;
 mod voxel;
 
-use directories::{BaseDirs, ProjectDirs};
+use directories::BaseDirs;
 
 fn main() {
     let mut app = App::default();
@@ -72,22 +74,31 @@ fn main() {
         .run();
 }
 
+#[derive(Resource)]
+pub struct BaseDirectories {
+    pub data_dir: PathBuf,
+    pub saves_dir: PathBuf,
+}
+
 fn setup(
     settings: Res<PlayerSettings>,
     mut cmds: Commands
 ) {
-    if let Some(proj_dirs) = ProjectDirs::from("fr", "catgirl", "World Generator") {
-        let data_dir = proj_dirs.data_dir();
-        // std::fs::create_dir_all(data_dir).unwrap();
-        info!("Project Data directory: {}", data_dir.display());
-        let config_dir = proj_dirs.config_dir();
-        // std::fs::create_dir_all(config_dir).unwrap();
-        info!("Config directory: {}", config_dir.display());
-    }
-
     if let Some(base_dirs) = BaseDirs::new() {
-        let data_dir = base_dirs.data_dir();
-        info!("Base Data directory: {}", data_dir.display());
+        let data_dir = base_dirs.data_dir().join(".yavafg"); // yet another voxel and fantasy game, root folder
+        info!("root data directory: {}", data_dir.display());
+        std::fs::create_dir_all(data_dir.clone()).unwrap();
+
+        let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds");
+        info!("saves directory: {}", saves_dir.display());
+        std::fs::create_dir_all(saves_dir.clone()).unwrap();
+
+        cmds.insert_resource(BaseDirectories {
+            data_dir,
+            saves_dir,
+        });
+    } else {
+        panic!("No valid home directory path could be retrieved from the operating system.");
     }
 
     cmds.spawn(Camera3dBundle {
