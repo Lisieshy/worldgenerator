@@ -26,7 +26,6 @@ pub struct PlayerController {
     pub cursor_locked: bool,
 }
 
-
 #[derive(Resource)]
 pub struct PlayerSettings {
     pub fov: f32,
@@ -356,8 +355,8 @@ pub fn draw_crosshair(
             parent
                 .spawn((NodeBundle {
                     style: Style {
-                        width: Val::Px(16.0),
-                        height: Val::Px(16.0),
+                        width: Val::Px(32.0),
+                        height: Val::Px(32.0),
                         ..default()
                     },
                     background_color: Color::rgba(1.0, 1.0, 1.0, 0.5).into(),

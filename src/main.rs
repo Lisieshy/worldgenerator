@@ -20,7 +20,6 @@ use bevy_vector_shapes::prelude::*;
 use bevy::core_pipeline::fxaa::Fxaa;
 
 mod systems;
-mod resources;
 mod debug;
 mod voxel;
 
