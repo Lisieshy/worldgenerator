@@ -2,8 +2,8 @@ use std::cell::RefCell;
 
 use super::{
     chunks::{ChunkEntities, ChunkLoadingSet, DirtyChunks},
-    terrain::TerrainGenSet,
-    Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT,
+    terrain::{TerrainGenSet, save_chunk_to_disk},
+    Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT, WorldSettings,
 };
 use crate::voxel::{
     render::{mesh_buffer, ChunkMaterialSingleton, MeshBuffers},
@@ -51,31 +51,42 @@ fn queue_mesh_tasks(
     dirty_chunks: Res<DirtyChunks>,
     chunk_entities: Res<ChunkEntities>,
     chunks: Res<ChunkMap<Voxel, ChunkShape>>,
+    world_settings: Res<WorldSettings>,
 ) {
     let task_pool = AsyncComputeTaskPool::get();
+
+    let name = world_settings.name;
+
+    let mesh_gen = |buffer, key, name| {
+        let mut mesh_buffers = SHARED_MESH_BUFFERS
+        .get_or(|| {
+            RefCell::new(MeshBuffers::<Voxel, ChunkShape>::new(ChunkShape {}))
+        })
+        .borrow_mut();
+
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+        mesh_buffer(&buffer, &mut mesh_buffers, &mut mesh, 1.0);
+
+        let _ = save_chunk_to_disk(&buffer, key, name);
+
+        mesh
+    };
 
     dirty_chunks
         .iter_dirty()
         .filter_map(|key| chunk_entities.entity(*key).map(|entity| (key, entity)))
         .filter_map(|(key, entity)| {
+            // let buffer = chunks.buffer_at(*key);
+            // save_chunk_to_disk(&buffer, key, name);
             chunks
                 .buffer_at(*key)
-                .map(|buffer| (buffer.clone(), entity))
+                .map(|buffer| (buffer.clone(), entity, *key))
         })
-        .map(|(buffer, entity)| {
+        .map(|(buffer, entity, key)| {
             (
                 entity,
                 ChunkMeshingTask(task_pool.spawn(async move {
-                    let mut mesh_buffers = SHARED_MESH_BUFFERS
-                        .get_or(|| {
-                            RefCell::new(MeshBuffers::<Voxel, ChunkShape>::new(ChunkShape {}))
-                        })
-                        .borrow_mut();
-
-                    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                    mesh_buffer(&buffer, &mut mesh_buffers, &mut mesh, 1.0);
-
-                    mesh
+                    mesh_gen(buffer, key, name)
                 })),
             )
         })

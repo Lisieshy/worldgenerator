@@ -103,7 +103,7 @@ fn setup(
         std::fs::create_dir_all(saves_dir.as_path()).unwrap();
 
     } else {
-        panic!("No valid home directory path could be retrieved from the operating system.");
+        panic!("No valid directory path could be retrieved from the operating system.");
     }
 
     cmds.spawn(Camera3dBundle {

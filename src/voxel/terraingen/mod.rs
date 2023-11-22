@@ -95,7 +95,6 @@ impl TerrainGenerator {
     }
 
     pub fn generate(&self, chunk_key: IVec3, buffer: &mut VoxelBuffer<Voxel, ChunkShape>, seed: i32) {
-        info!("generating chunk at {:?}", chunk_key);
         let continentalness_noise = get_chunk_continentalness(chunk_key, CHUNK_LENGTH_U, seed);
         let erosion_noise = get_chunk_erosion(chunk_key, CHUNK_LENGTH_U, seed);
         let peaks_valleys_noise = get_chunk_peaks_valleys(chunk_key, CHUNK_LENGTH_U, seed);
@@ -115,9 +114,9 @@ impl TerrainGenerator {
                 for h in 0..surface_level {
                     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Rock::into_voxel();
                 }
-                // for h in surface_level..63 {
-                //     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
-                // }
+                for h in surface_level..73 {
+                    *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
+                }
                 surface_level = 64;
             });
 

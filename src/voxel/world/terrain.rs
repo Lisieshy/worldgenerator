@@ -15,7 +15,7 @@ use bevy::{
         Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfigs,
         Plugin, Query, ResMut, SystemSet, Update,
     },
-    tasks::{AsyncComputeTaskPool, Task}, ecs::{world, system::Res}, log::info, math::IVec3,
+    tasks::{AsyncComputeTaskPool, Task}, ecs::system::Res, log::info, math::IVec3,
 };
 use directories::BaseDirs;
 use futures_lite::future;
@@ -33,9 +33,11 @@ pub fn save_chunk_to_disk(
 
         // chunk isn't already saved on disk, so we generate it and save it.
         let encoded_chunk_data: Vec<u8> = bincode::serialize(&chunk_data)?;
+        let mut tmpcursor = std::io::Cursor::new(encoded_chunk_data);
+        let compressed_chunk_data = zstd::encode_all(&mut tmpcursor, 3)?;
         let chunk_path = saves_dir.join(format!("{}.chunk", key));
-        info!("saving chunk to {:?}", chunk_path);
-        std::fs::write(chunk_path, encoded_chunk_data)?;
+        // info!("saving chunk to {:?}", chunk_path);
+        std::fs::write(chunk_path, compressed_chunk_data)?;
         Ok(())
     } else {
         panic!("No valid directory path could be retrieved from the operating system.");
@@ -55,9 +57,11 @@ pub fn load_chunk_from_disk(
         // checking if the chunk file exists
         let chunk_path = saves_dir.join(format!("{}.chunk", key));
         if chunk_path.exists() {
-            info!("loading chunk from {:?}", chunk_path);
+            // info!("loading chunk from {:?}", chunk_path);
             let encoded_chunk_data = std::fs::read(chunk_path)?;
-            let chunk_data: VoxelBuffer<Voxel, ChunkShape> = bincode::deserialize(&encoded_chunk_data)?;
+            let mut tmpcursor = std::io::Cursor::new(encoded_chunk_data);
+            let decoded_chunk_data = zstd::decode_all(&mut tmpcursor)?;
+            let chunk_data: VoxelBuffer<Voxel, ChunkShape> = bincode::deserialize(&decoded_chunk_data)?;
             Ok(Some(chunk_data))
         } else {
             Ok(None)
@@ -80,38 +84,15 @@ fn queue_terrain_gen(
     let name = world_settings.name;
 
     let task_gen = |key, seed, name| {
-        match load_chunk_from_disk(key, name) {
-            Ok(Some(chunk_data)) => {
-                chunk_data
-            },
-            Ok(None) | Err(_) => {
-                let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
-                TERRAIN_GENERATOR
-                    .read()
-                    .unwrap()
-                    .generate(key, &mut chunk_data, seed);
-                let _ = save_chunk_to_disk(&chunk_data, key, name);
-                chunk_data
-            }
-        }
-
-        // That one deserves its own blogpost
-        // b is some but it still enters the unwrap_or
-        // Meanwhile the match case works fine
-
-        // let a = load_chunk_from_disk(key, name);
-        // info!("a: {:?}", a.is_ok());
-        // let b = a.ok().flatten();
-        // info!("b: {:?}", b.is_some());
-        // b.unwrap_or({
-        //         let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
-        //         TERRAIN_GENERATOR
-        //             .read()
-        //             .unwrap()
-        //             .generate(key, &mut chunk_data, seed);
-        //         let _ = save_chunk_to_disk(&chunk_data, key, name);
-        //         chunk_data
-        //     })
+        load_chunk_from_disk(key, name).ok().flatten().unwrap_or_else(|| {
+            let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
+            TERRAIN_GENERATOR
+                .read()
+                .unwrap()
+                .generate(key, &mut chunk_data, seed);
+            // let _ = save_chunk_to_disk(&chunk_data, key, name);
+            chunk_data
+        })
     };
 
     new_chunks

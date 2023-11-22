@@ -165,24 +165,66 @@ pub fn handle_player_inputs(
     };
 
     let in_range_hit = |hit: &IntersectionData| match hit.distance() {
-        x if x < 20.0 => Some((hit.position(), hit.normal())),
+        x if x < 10.0 => Some((hit.position(), hit.normal())),
         _ => None,
     };
 
-    // // draw bounding box around the block the player is looking at
+    // // draw square on the face of the block the player is looking at
     // if let Some((pos, normal)) = hits.and_then(in_range_hit) {
+    //     painter.thickness = 0.1;
+    //     painter.thickness_type = ThicknessType::World;
+    //     painter.color = Color::ORANGE;
     //     let pos = pos - normal * 0.5;
+    //     let mut offset = 0.001;
 
-    //     painter.set_translation(pos.trunc());
-    //     painter.color = Color::DARK_GRAY;
-    //     painter.cap = Cap::Square;
-    //     painter.thickness_type = ThicknessType::Pixels;
-    //     painter.thickness = 4.;
-    //     // front face
-    //     painter.line(Vec3::new(1.0, 0.0, 0.001), Vec3::new(0.0, 0.0, 0.001));
-    //     painter.line(Vec3::new(0.0, 1.0, 0.001), Vec3::new(0.0, 0.0, 0.001));
-    //     painter.line(Vec3::new(1.0, 0.0, 0.001), Vec3::new(1.0, 1.0, 0.001));
-    //     painter.line(Vec3::new(0.0, 1.0, 0.001), Vec3::new(1.0, 1.0, 0.001));
+    //     match normal {
+    //         Vec3 { x, .. } if x == 1.0 => {
+    //             painter.set_translation(
+    //                 pos.trunc(),
+    //             );
+    //             painter.set_rotation(Quat::from_rotation_y(PI / 2.0));
+    //         }
+    //         Vec3 { x, .. } if x == -1.0 => {
+    //             painter.set_translation(
+    //                 pos.trunc() - Vec3::Z,
+    //             );
+    //             painter.set_rotation(Quat::from_rotation_y(-PI / 2.0));
+    //         }
+    //         Vec3 { y, .. } if y == 1.0 => {
+    //             painter.set_translation(
+    //                 pos.trunc() - Vec3::Z,
+    //             );
+    //             painter.set_rotation(Quat::from_rotation_x(PI / 2.0));
+    //             offset = -0.001;
+    //         }
+    //         Vec3 { y, .. } if y == -1.0 => {
+    //             painter.set_translation(
+    //                 pos.trunc(),
+    //             );
+    //             painter.set_rotation(Quat::from_rotation_x(-PI / 2.0));
+    //             offset = -0.001;
+    //         }
+    //         Vec3 { z, .. } if z == 1.0 => {
+    //             painter.set_translation(
+    //                 pos.trunc() + Vec3::X,
+    //             );
+    //             painter.set_rotation(Quat::from_rotation_y(PI));
+    //             offset = -0.001;
+    //         }
+    //         Vec3 { z, .. } if z == -1.0 => {
+    //             painter.set_translation(
+    //                 pos.trunc(),
+    //             );
+    //             painter.set_rotation(Quat::from_rotation_y(0.0));
+    //             offset = -0.001;
+    //         }
+    //         _ => (),
+    //     }
+
+    //     painter.line(Vec3::new(1.0, 0.0, offset), Vec3::new(0.0, 0.0, offset));
+    //     painter.line(Vec3::new(0.0, 1.0, offset), Vec3::new(0.0, 0.0, offset));
+    //     painter.line(Vec3::new(1.0, 0.0, offset), Vec3::new(1.0, 1.0, offset));
+    //     painter.line(Vec3::new(0.0, 1.0, offset), Vec3::new(1.0, 1.0, offset));
     // }
 
     if mouse_buttons.just_pressed(MouseButton::Right) && window.cursor.grab_mode != CursorGrabMode::None {
@@ -193,13 +235,20 @@ pub fn handle_player_inputs(
 
             let chunk_pos = get_chunk_for_pos(pos);
 
-            let pos_in_chunk = pos - chunk_pos;
+            let pos_in_chunk = pos - chunk_pos - Vec3::Y;
 
             chunks.buffer_at_mut(chunk_pos.as_ivec3())
             .map(|buffer| {
+                if buffer.voxel_at([
+                    pos_in_chunk.x as u32,
+                    pos_in_chunk.y as u32,
+                    pos_in_chunk.z as u32,
+                ].into()) != Void::into_voxel() {
+                    return;
+                }
                 *buffer.voxel_at_mut([
                     pos_in_chunk.x as u32,
-                    (pos_in_chunk.y - 1.) as u32,
+                    pos_in_chunk.y as u32,
                     pos_in_chunk.z as u32,
                 ].into()) = Rock::into_voxel();
             }).and_then(|_| {
