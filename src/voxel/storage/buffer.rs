@@ -8,7 +8,7 @@ use crate::voxel::{ChunkShape, Voxel};
 
 /// A buffer of typed voxel data stored as a contiguous array in memory.
 #[allow(dead_code)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VoxelBuffer<V, S: Shape<3, Coord = u32>>
 where
     V: Copy + Clone + Default,

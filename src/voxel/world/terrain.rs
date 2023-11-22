@@ -94,6 +94,24 @@ fn queue_terrain_gen(
                 chunk_data
             }
         }
+
+        // That one deserves its own blogpost
+        // b is some but it still enters the unwrap_or
+        // Meanwhile the match case works fine
+
+        // let a = load_chunk_from_disk(key, name);
+        // info!("a: {:?}", a.is_ok());
+        // let b = a.ok().flatten();
+        // info!("b: {:?}", b.is_some());
+        // b.unwrap_or({
+        //         let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
+        //         TERRAIN_GENERATOR
+        //             .read()
+        //             .unwrap()
+        //             .generate(key, &mut chunk_data, seed);
+        //         let _ = save_chunk_to_disk(&chunk_data, key, name);
+        //         chunk_data
+        //     })
     };
 
     new_chunks
@@ -103,7 +121,7 @@ fn queue_terrain_gen(
             (
                 entity,
                 (TerrainGenTask(task_pool.spawn(async move {
-                    task_gen(key, seed.clone(), name.clone())
+                    task_gen(key, seed.clone(), name)
                 }))),
             )
         })
