@@ -1,36 +1,100 @@
+use std::path::PathBuf;
+use anyhow::Result;
+
 use super::{
     chunks::{ChunkLoadingSet, DirtyChunks},
     Chunk, ChunkShape, WorldSettings,
 };
-use crate::{voxel::{
+use crate::voxel::{
     storage::{ChunkMap, VoxelBuffer},
     terraingen::TERRAIN_GENERATOR,
     Voxel,
-}, BaseDirectories};
+};
 use bevy::{
     prelude::{
         Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfigs,
         Plugin, Query, ResMut, SystemSet, Update,
     },
-    tasks::{AsyncComputeTaskPool, Task}, ecs::{world, system::Res}, log::info,
+    tasks::{AsyncComputeTaskPool, Task}, ecs::{world, system::Res}, log::info, math::IVec3,
 };
+use directories::BaseDirs;
 use futures_lite::future;
+
+pub fn save_chunk_to_disk(
+    chunk_data: &VoxelBuffer<Voxel, ChunkShape>,
+    key: IVec3,
+    world_name: &'static str,
+) -> Result<()> {
+    // getting the directory
+    if let Some(base_dirs) = BaseDirs::new() {
+        // creating the saved_worlds + world name directory, nothing happens if it already exists.
+        let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds").join(world_name);
+        std::fs::create_dir_all(saves_dir.as_path())?;
+
+        // chunk isn't already saved on disk, so we generate it and save it.
+        let encoded_chunk_data: Vec<u8> = bincode::serialize(&chunk_data)?;
+        let chunk_path = saves_dir.join(format!("{}.chunk", key));
+        info!("saving chunk to {:?}", chunk_path);
+        std::fs::write(chunk_path, encoded_chunk_data)?;
+        Ok(())
+    } else {
+        panic!("No valid directory path could be retrieved from the operating system.");
+    }
+}
+
+pub fn load_chunk_from_disk(
+    key: IVec3,
+    world_name: &'static str,
+) -> Result<Option<VoxelBuffer<Voxel, ChunkShape>>> {
+    // getting the directory
+    if let Some(base_dirs) = BaseDirs::new() {
+        // creating the saved_worlds + world name directory, nothing happens if it already exists.
+        let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds").join(world_name);
+        std::fs::create_dir_all(saves_dir.as_path())?;
+
+        // checking if the chunk file exists
+        let chunk_path = saves_dir.join(format!("{}.chunk", key));
+        if chunk_path.exists() {
+            info!("loading chunk from {:?}", chunk_path);
+            let encoded_chunk_data = std::fs::read(chunk_path)?;
+            let chunk_data: VoxelBuffer<Voxel, ChunkShape> = bincode::deserialize(&encoded_chunk_data)?;
+            Ok(Some(chunk_data))
+        } else {
+            Ok(None)
+        }
+    } else {
+        panic!("No valid directory path could be retrieved from the operating system.");
+    }
+}
+
 
 /// Queues the terrain gen async tasks for the newly created chunks.
 fn queue_terrain_gen(
     mut commands: Commands,
     new_chunks: Query<(Entity, &Chunk), Added<Chunk>>,
     world_settings: Res<WorldSettings>,
-    dirs: Res<BaseDirectories>,
 ) {
     let task_pool = AsyncComputeTaskPool::get();
 
     let seed = world_settings.seed;
-    let name = world_settings.name.as_str();
+    let name = world_settings.name;
 
-    let saves_dir = dirs.saves_dir.clone();
-
-    let world_dir = saves_dir.join(format!("{}.world", name));
+    let task_gen = |key, seed, name| {
+        match load_chunk_from_disk(key, name) {
+            Ok(Some(chunk_data)) => {
+                chunk_data
+            },
+            Ok(None) | Err(_) => {
+                let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
+                TERRAIN_GENERATOR
+                    .read()
+                    .unwrap()
+                    .generate(key, &mut chunk_data, seed);
+                let _ = save_chunk_to_disk(&chunk_data, key, name);
+                chunk_data
+            }
+        }
+    };
 
     new_chunks
         .iter()
@@ -39,14 +103,7 @@ fn queue_terrain_gen(
             (
                 entity,
                 (TerrainGenTask(task_pool.spawn(async move {
-                    let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
-                    TERRAIN_GENERATOR
-                        .read()
-                        .unwrap()
-                        .generate(key, &mut chunk_data, seed);
-                    let encoded_chunk_data: Vec<u8> = bincode::serialize(&chunk_data).unwrap();
-                    let chunk_path = world_dir.join(format!("{}.chunk", key));
-                    chunk_data
+                    task_gen(key, seed.clone(), name.clone())
                 }))),
             )
         })

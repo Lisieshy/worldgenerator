@@ -12,14 +12,15 @@ use bevy_egui::{
     egui::{self, Rgba, Slider, Button},
     EguiContexts, EguiPlugin, EguiSet,
 };
+use directories::BaseDirs;
 
 // use bevy_prototype_debug_lines::*;
 
-use crate::{voxel::{
+use crate::voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
     CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, VoxelWorldPlugin,
-}, BaseDirectories};
+};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
     egui::Window::new("performance stuff").show(egui.ctx_mut(), |ui| {
@@ -226,12 +227,17 @@ fn display_world_info(
 
 fn display_misc_info(
     mut egui: EguiContexts,
-    dirs: ResMut<BaseDirectories>,
 ) {
+
     egui::Window::new("Misc.").show(egui.ctx_mut(), |ui| {
-        ui.heading("Data Dirs");
-        ui.label(format!("Data dir: {}", dirs.data_dir.display()));
-        ui.label(format!("Saves dir: {}", dirs.saves_dir.display()));
+        if let Some(base_dirs) = BaseDirs::new() {
+            let data_dir = base_dirs.data_dir().join(".yavafg");
+            let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds");
+
+            ui.heading("Data Dirs");
+            ui.label(format!("Data dir: {}", data_dir.display()));
+            ui.label(format!("Saves dir: {}", saves_dir.display()));
+        }
     });
 }
 

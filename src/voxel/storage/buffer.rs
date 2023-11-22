@@ -1,6 +1,6 @@
 use ilattice::extent::Extent;
 use ilattice::glam::UVec3;
-use ndshape::Shape;
+use ndshape::{Shape, ConstShape3u32};
 
 use serde::{Serialize, Deserialize, Serializer, ser::SerializeStruct};
 
@@ -17,7 +17,7 @@ where
     shape: S,
 }
 
-// /// Implementing Serialize for the specific Voxel and ChunkShape types in order to save the buffer to disk.
+/// Implementing Serialize for the specific Voxel and ChunkShape types in order to save the buffer to disk.
 impl Serialize for VoxelBuffer<Voxel, ChunkShape> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -27,8 +27,70 @@ impl Serialize for VoxelBuffer<Voxel, ChunkShape> {
 
         let mut voxel_data = serializer.serialize_struct("VoxelBuffer", 1)?;
         voxel_data.serialize_field("data", &self.data)?;
-        // voxel_data.serialize_field("shape", &self.shape)?;
+        // voxel_data.serialize_field("shape", &ConstShape3u32)?;
         voxel_data.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for VoxelBuffer<Voxel, ChunkShape> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Data,
+        }
+
+        struct VoxelBufferDataVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for VoxelBufferDataVisitor {
+            type Value = VoxelBuffer<Voxel, ChunkShape>;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("struct VoxelBuffer")
+            }
+
+            fn visit_seq<V>(self, mut seq: V) -> Result<VoxelBuffer<Voxel, ChunkShape>, V::Error>
+                where
+                    V: serde::de::SeqAccess<'de>,
+            {
+                let data = seq.next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+
+                Ok(VoxelBuffer {
+                    data,
+                    shape: ConstShape3u32,
+                })
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<VoxelBuffer<Voxel, ChunkShape>, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut data = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Data => {
+                            if data.is_some() {
+                                return Err(serde::de::Error::duplicate_field("data"));
+                            }
+                            data = Some(map.next_value()?);
+                        }
+                    }
+                }
+                let data = data.ok_or_else(|| serde::de::Error::missing_field("data"))?;
+
+                Ok(VoxelBuffer {
+                    data,
+                    shape: ConstShape3u32,
+                })
+            }
+        }
+
+        const FIELDS: &[&str] = &["data"];
+        deserializer.deserialize_struct("VoxelBuffer", FIELDS, VoxelBufferDataVisitor)
+
     }
 }
 

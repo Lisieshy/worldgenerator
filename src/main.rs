@@ -74,11 +74,11 @@ fn main() {
         .run();
 }
 
-#[derive(Resource)]
-pub struct BaseDirectories {
-    pub data_dir: PathBuf,
-    pub saves_dir: PathBuf,
-}
+// #[derive(Resource, Clone, Copy)]
+// pub struct BaseDirectories {
+//     pub data_dir: &'static str,
+//     pub saves_dir: &'static str,
+// }
 
 fn setup(
     settings: Res<PlayerSettings>,
@@ -91,10 +91,13 @@ fn setup(
         let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds");
         info!("saves directory: {}", saves_dir.display());
 
-        cmds.insert_resource(BaseDirectories {
-            data_dir: data_dir.clone(),
-            saves_dir: saves_dir.clone(),
-        });
+        // let ddir = data_dir.clone();
+        // let sdir = saves_dir.clone();
+
+        // cmds.insert_resource(BaseDirectories {
+        //     data_dir: ddir.to_str().unwrap(),
+        //     saves_dir: sdir.to_str().unwrap(),
+        // });
 
         std::fs::create_dir_all(data_dir.as_path()).unwrap();
         std::fs::create_dir_all(saves_dir.as_path()).unwrap();

@@ -22,7 +22,7 @@ mod terrain;
 #[derive(Resource)]
 pub struct WorldSettings {
     pub seed: i32,
-    pub name: String,
+    pub name: &'static str,
 }
 
 /// Registers all resources and systems for simulating and rendering an editable and interactive voxel world.
@@ -33,7 +33,7 @@ impl Plugin for VoxelWorldPlugin {
         app.insert_resource(ChunkMap::<Voxel, ChunkShape>::new(ChunkShape {}))
             .insert_resource(WorldSettings {
                 seed: 0,
-                name: "world".to_string(),
+                name: "world",
             })
             .add_plugins(chunks::VoxelWorldChunkingPlugin)
             .add_plugins(meshing::VoxelWorldMeshingPlugin)

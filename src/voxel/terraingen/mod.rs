@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, sync::RwLock };
 
 use bevy::{
     math::IVec3,
-    prelude::Plugin,
+    prelude::Plugin, log::info,
 };
 use once_cell::sync::Lazy;
 
@@ -95,7 +95,7 @@ impl TerrainGenerator {
     }
 
     pub fn generate(&self, chunk_key: IVec3, buffer: &mut VoxelBuffer<Voxel, ChunkShape>, seed: i32) {
-
+        info!("generating chunk at {:?}", chunk_key);
         let continentalness_noise = get_chunk_continentalness(chunk_key, CHUNK_LENGTH_U, seed);
         let erosion_noise = get_chunk_erosion(chunk_key, CHUNK_LENGTH_U, seed);
         let peaks_valleys_noise = get_chunk_peaks_valleys(chunk_key, CHUNK_LENGTH_U, seed);
