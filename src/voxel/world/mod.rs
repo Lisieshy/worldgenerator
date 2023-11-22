@@ -33,7 +33,7 @@ impl Plugin for VoxelWorldPlugin {
         app.insert_resource(ChunkMap::<Voxel, ChunkShape>::new(ChunkShape {}))
             .insert_resource(WorldSettings {
                 seed: 0,
-                name: "World".to_string(),
+                name: "world".to_string(),
             })
             .add_plugins(chunks::VoxelWorldChunkingPlugin)
             .add_plugins(meshing::VoxelWorldMeshingPlugin)

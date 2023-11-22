@@ -5,7 +5,7 @@
 )]
 
 
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use bevy::{
     prelude::*,
@@ -87,16 +87,18 @@ fn setup(
     if let Some(base_dirs) = BaseDirs::new() {
         let data_dir = base_dirs.data_dir().join(".yavafg"); // yet another voxel and fantasy game, root folder
         info!("root data directory: {}", data_dir.display());
-        std::fs::create_dir_all(data_dir.clone()).unwrap();
 
         let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds");
         info!("saves directory: {}", saves_dir.display());
-        std::fs::create_dir_all(saves_dir.clone()).unwrap();
 
         cmds.insert_resource(BaseDirectories {
-            data_dir,
-            saves_dir,
+            data_dir: data_dir.clone(),
+            saves_dir: saves_dir.clone(),
         });
+
+        std::fs::create_dir_all(data_dir.as_path()).unwrap();
+        std::fs::create_dir_all(saves_dir.as_path()).unwrap();
+
     } else {
         panic!("No valid home directory path could be retrieved from the operating system.");
     }

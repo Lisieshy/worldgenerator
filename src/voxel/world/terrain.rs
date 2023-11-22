@@ -2,17 +2,17 @@ use super::{
     chunks::{ChunkLoadingSet, DirtyChunks},
     Chunk, ChunkShape, WorldSettings,
 };
-use crate::voxel::{
+use crate::{voxel::{
     storage::{ChunkMap, VoxelBuffer},
     terraingen::TERRAIN_GENERATOR,
     Voxel,
-};
+}, BaseDirectories};
 use bevy::{
     prelude::{
         Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfigs,
         Plugin, Query, ResMut, SystemSet, Update,
     },
-    tasks::{AsyncComputeTaskPool, Task},
+    tasks::{AsyncComputeTaskPool, Task}, ecs::{world, system::Res}, log::info,
 };
 use futures_lite::future;
 
@@ -20,11 +20,17 @@ use futures_lite::future;
 fn queue_terrain_gen(
     mut commands: Commands,
     new_chunks: Query<(Entity, &Chunk), Added<Chunk>>,
-    world_settings: ResMut<WorldSettings>,
+    world_settings: Res<WorldSettings>,
+    dirs: Res<BaseDirectories>,
 ) {
     let task_pool = AsyncComputeTaskPool::get();
 
     let seed = world_settings.seed;
+    let name = world_settings.name.as_str();
+
+    let saves_dir = dirs.saves_dir.clone();
+
+    let world_dir = saves_dir.join(format!("{}.world", name));
 
     new_chunks
         .iter()
@@ -38,6 +44,8 @@ fn queue_terrain_gen(
                         .read()
                         .unwrap()
                         .generate(key, &mut chunk_data, seed);
+                    let encoded_chunk_data: Vec<u8> = bincode::serialize(&chunk_data).unwrap();
+                    let chunk_path = world_dir.join(format!("{}.chunk", key));
                     chunk_data
                 }))),
             )

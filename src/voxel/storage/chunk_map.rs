@@ -6,12 +6,10 @@ use ndshape::Shape;
 
 use crate::voxel::{CHUNK_LENGTH, CHUNK_HEIGHT};
 
-use serde::{Serialize, Deserialize};
-
 use super::buffer::VoxelBuffer;
 
 /// Provides an interface to query or modify voxel data for worlds or scenes split into multiple voxel data buffers of a same shape with no level of detail.
-#[derive(Resource, Serialize, Deserialize)]
+#[derive(Resource)]
 pub struct ChunkMap<V, S>
 where
     V: Clone + Copy + Default + PartialEq + Eq + Hash,

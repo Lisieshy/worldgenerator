@@ -15,11 +15,11 @@ use bevy_egui::{
 
 // use bevy_prototype_debug_lines::*;
 
-use crate::voxel::{
+use crate::{voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
-    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings,
-};
+    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, VoxelWorldPlugin,
+}, BaseDirectories};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
     egui::Window::new("performance stuff").show(egui.ctx_mut(), |ui| {
@@ -171,13 +171,13 @@ fn draw_chunk_borders(
     // }
 }
 
-fn display_main_stats(
+fn display_world_info(
     mut egui: EguiContexts,
     dirty_chunks: Res<DirtyChunks>,
     player_pos: Res<CurrentLocalPlayerChunk>,
     mut chunk_loading_radius: ResMut<ChunkLoadRadius>,
     mut chunk_command_queue: ResMut<ChunkCommandQueue>,
-    world_settings: ResMut<WorldSettings>,
+    world_settings: Res<WorldSettings>,
     // lines: ResMut<DebugLines>,
     // shapes: ResMut<DebugShapes>,
     loaded_chunks: Res<ChunkEntities>,
@@ -200,7 +200,7 @@ fn display_main_stats(
         ui.label(format!("Loaded chunk count: {}", loaded_chunks.len()));
         ui.separator();
         ui.label("Horizontal chunk loading radius");
-        ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 1..=32));
+        ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 2..=32));
         ui.separator();
 
         if ui.button("Clear loaded chunks").clicked() {
@@ -222,6 +222,17 @@ fn display_main_stats(
     });
 
     // draw_chunk_borders(shapes, player_pos.chunk_min);
+}
+
+fn display_misc_info(
+    mut egui: EguiContexts,
+    dirs: ResMut<BaseDirectories>,
+) {
+    egui::Window::new("Misc.").show(egui.ctx_mut(), |ui| {
+        ui.heading("Data Dirs");
+        ui.label(format!("Data dir: {}", dirs.data_dir.display()));
+        ui.label(format!("Saves dir: {}", dirs.saves_dir.display()));
+    });
 }
 
 fn display_debug_ui_criteria(ui_state: Res<DebugUIState>) -> bool {
@@ -355,7 +366,13 @@ impl Plugin for DebugUIPlugins {
             ))
             .add_systems(
                 Update,
-                (display_debug_stats, display_main_stats, display_player_settings, display_window_settings)
+                (
+                    display_debug_stats,
+                    display_world_info,
+                    display_player_settings,
+                    display_misc_info,
+                    display_window_settings
+                )
                     .in_set(DebugUISet::Display)
                     .distributive_run_if(display_debug_ui_criteria),
             )
@@ -369,7 +386,7 @@ impl Plugin for DebugUIPlugins {
             .insert_resource(DebugUIState {
                 display_debug_info: true,
                 display_mat_debug: false,
-                selected_mat: 0,
+                selected_mat: 4,
                 window_mode: WindowMode::Windowed,
                 use_vsync: true,
             });

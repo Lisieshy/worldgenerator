@@ -2,6 +2,10 @@ use ilattice::extent::Extent;
 use ilattice::glam::UVec3;
 use ndshape::Shape;
 
+use serde::{Serialize, Deserialize, Serializer, ser::SerializeStruct};
+
+use crate::voxel::{ChunkShape, Voxel};
+
 /// A buffer of typed voxel data stored as a contiguous array in memory.
 #[allow(dead_code)]
 #[derive(Clone)]
@@ -11,6 +15,21 @@ where
 {
     data: Box<[V]>,
     shape: S,
+}
+
+// /// Implementing Serialize for the specific Voxel and ChunkShape types in order to save the buffer to disk.
+impl Serialize for VoxelBuffer<Voxel, ChunkShape> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        // let encoded: Vec<u8> = bincode::serialize(&self.data).unwrap();
+
+        let mut voxel_data = serializer.serialize_struct("VoxelBuffer", 1)?;
+        voxel_data.serialize_field("data", &self.data)?;
+        // voxel_data.serialize_field("shape", &self.shape)?;
+        voxel_data.end()
+    }
 }
 
 #[allow(dead_code)]
