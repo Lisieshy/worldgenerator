@@ -4,12 +4,12 @@ use bevy::{
         Changed, Commands, Entity, GlobalTransform, IntoSystemConfigs,
         Plugin, Query, Res, ResMut, Resource, SystemSet, With, Vec3, Update, PostUpdate, Last,
     },
-    utils::{HashMap, HashSet}, pbr::wireframe::Wireframe, gizmos::AabbGizmo, render::color::Color,
+    utils::{HashMap, HashSet}, pbr::wireframe::Wireframe, gizmos::AabbGizmo, render::color::Color, ecs::schedule::common_conditions::in_state,
 };
 use float_ord::FloatOrd;
 
 use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH};
-use crate::voxel::storage::ChunkMap;
+use crate::{voxel::storage::ChunkMap, AppState};
 use crate::voxel::Voxel;
 
 /// Gets the chunk for any given position.
@@ -111,8 +111,8 @@ fn create_chunks(
                 request,
                 cmds.spawn((
                     Chunk(request),
-                    // AabbGizmo { ..Default::default() },
-                    // Wireframe
+                    AabbGizmo { ..Default::default() },
+                    Wireframe
                 )).id()
             )
         );
@@ -240,15 +240,16 @@ impl Plugin for VoxelWorldChunkingPlugin {
             Update,
             (update_player_pos, update_view_chunks, create_chunks)
                 .chain()
-                .in_set(ChunkLoadingSet),
+                .in_set(ChunkLoadingSet)
+                .run_if(in_state(AppState::InGame)),
         )
         .add_systems(
             PostUpdate,
-            destroy_chunks
+            destroy_chunks.run_if(in_state(AppState::InGame))
         )
         .add_systems(
             Last,
-            clear_dirty_chunks
+            clear_dirty_chunks.run_if(in_state(AppState::InGame))
         );
     }
 }

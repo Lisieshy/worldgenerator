@@ -461,7 +461,6 @@ dependencies = [
  "anyhow",
  "bevy",
  "bevy_asset_loader_derive",
- "iyes_progress 0.10.0",
  "path-slash",
 ]
 
@@ -2536,17 +2535,6 @@ dependencies = [
  "bevy_app 0.11.3",
  "bevy_ecs 0.11.3",
  "bevy_utils 0.11.3",
-]
-
-[[package]]
-name = "iyes_progress"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ed260fda0df8ed859329f221a5eb24175d38fd7d10f586cf6468574e6385b79"
-dependencies = [
- "bevy_app 0.12.0",
- "bevy_ecs 0.12.0",
- "bevy_utils 0.12.0",
 ]
 
 [[package]]
@@ -4773,7 +4761,7 @@ dependencies = [
  "float-ord",
  "futures-lite",
  "ilattice 0.3.0",
- "iyes_progress 0.9.1",
+ "iyes_progress",
  "ndcopy",
  "ndshape",
  "noise",

@@ -1,7 +1,9 @@
-use bevy::prelude::{
+use bevy::{prelude::{
     Color, Commands, Deref, DirectionalLight, DirectionalLightBundle, Entity, ParamSet, Plugin,
     Query, Res, Resource, Transform, Vec3, With, Startup, Update,
-};
+}, ecs::schedule::{OnEnter, IntoSystemConfigs, common_conditions::in_state}};
+
+use crate::AppState;
 
 use super::player::PlayerController;
 
@@ -59,7 +61,7 @@ pub struct InteractiveSkyboxPlugin;
 
 impl Plugin for InteractiveSkyboxPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup ,setup_sky_lighting)
-            .add_systems(Update, update_light_position);
+        app.add_systems(OnEnter(AppState::InGame) ,setup_sky_lighting)
+            .add_systems(Update, (update_light_position).run_if(in_state(AppState::InGame)));
     }
 }

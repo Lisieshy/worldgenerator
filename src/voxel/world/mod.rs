@@ -12,6 +12,8 @@ pub use chunks::{
     ChunkCommandQueue, ChunkEntities, ChunkLoadRadius, CurrentLocalPlayerChunk, DirtyChunks,
 };
 
+use bevy_vector_shapes::prelude::*;
+
 mod chunks_anim;
 pub mod materials;
 mod meshing;
@@ -35,6 +37,7 @@ impl Plugin for VoxelWorldPlugin {
                 seed: 0,
                 name: "world",
             })
+            .add_plugins(ShapePlugin::default())
             .add_plugins(chunks::VoxelWorldChunkingPlugin)
             .add_plugins(meshing::VoxelWorldMeshingPlugin)
             // ordering of plugin insertion matters here.
@@ -50,7 +53,7 @@ impl Plugin for VoxelWorldPlugin {
     }
 }
 
-pub const CHUNK_LENGTH: u32 = 64;
+pub const CHUNK_LENGTH: u32 = 32;
 pub const CHUNK_HEIGHT: u32 = 256;
 pub const CHUNK_LENGTH_U: usize = CHUNK_LENGTH as usize;
 pub type ChunkShape = ConstShape3u32<CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH>;

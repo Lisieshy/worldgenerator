@@ -114,9 +114,9 @@ impl TerrainGenerator {
                 for h in 0..surface_level {
                     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Rock::into_voxel();
                 }
-                for h in surface_level..73 {
-                    *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
-                }
+                // for h in surface_level..73 {
+                //     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
+                // }
                 surface_level = 64;
             });
 

@@ -1,5 +1,5 @@
 const VOXEL_MAT_FLAG_LIQUID: u32 = 2u; // 1 << 1
-const TERRAIN_CHUNK_LENGTH: u32 = 64u;
+const TERRAIN_CHUNK_LENGTH: u32 = 32u;
 
 struct VoxelMat {
     base_color: vec4<f32>,

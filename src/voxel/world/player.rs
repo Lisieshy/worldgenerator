@@ -1,3 +1,4 @@
+use bevy::gizmos;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
@@ -7,6 +8,7 @@ use bevy_vector_shapes::shapes::{DiscPainter, LinePainter, Cap, ThicknessType};
 
 use std::f32::consts::PI;
 
+use crate::AppState;
 use crate::debug::DebugUISet;
 use crate::voxel::Voxel;
 use crate::voxel::material::VoxelMaterial;
@@ -66,6 +68,7 @@ pub fn handle_player_inputs(
     mut dirty_chunks: ResMut<DirtyChunks>,
     mut raycast: Raycast,
     mut painter: ShapePainter,
+    mut gizmos: Gizmos,
 ) {
     let window = windows.single();
     let (mut controller, mut transform) = query.single_mut();
@@ -159,7 +162,7 @@ pub fn handle_player_inputs(
 
     let direction = Quat::from_rotation_y(controller.yaw) * Quat::from_rotation_x(controller.pitch) * Vec3::new(0.0, 0.0, -1.0);
     let ray = Ray3d::new(transform.translation, direction.normalize());
-    let hits = match raycast.cast_ray(ray, &default()) {
+    let hits = match raycast.debug_cast_ray(ray, &default(), &mut gizmos) {
         &[(_entity, ref data), ..] => Some(data),
         &[] => None,
     };
@@ -437,10 +440,10 @@ pub struct VoxelWorldPlayerControllerPlugin;
 
 impl Plugin for VoxelWorldPlayerControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, init_input)
-            .add_systems(Update, grab_cursor.after(DebugUISet::Display))
-            .add_systems(Update, handle_player_inputs)
-            .add_systems(Startup, draw_crosshair);
+        app.add_systems(OnEnter(AppState::InGame), init_input)
+            .add_systems(Update, grab_cursor.after(DebugUISet::Display).run_if(in_state(AppState::InGame)))
+            .add_systems(Update, handle_player_inputs.run_if(in_state(AppState::InGame)))
+            .add_systems(OnEnter(AppState::InGame), draw_crosshair);
         // app.add_startup_system(init_input)
         //     .add_system(grab_cursor.in_base_set(CoreSet::Update).after(DebugUISet::Display))
         //     .add_system(handle_player_inputs.in_base_set(CoreSet::Update));

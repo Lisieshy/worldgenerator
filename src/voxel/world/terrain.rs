@@ -5,17 +5,17 @@ use super::{
     chunks::{ChunkLoadingSet, DirtyChunks},
     Chunk, ChunkShape, WorldSettings,
 };
-use crate::voxel::{
+use crate::{voxel::{
     storage::{ChunkMap, VoxelBuffer},
     terraingen::TERRAIN_GENERATOR,
     Voxel,
-};
+}, AppState};
 use bevy::{
     prelude::{
         Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfigs,
         Plugin, Query, ResMut, SystemSet, Update,
     },
-    tasks::{AsyncComputeTaskPool, Task}, ecs::system::Res, log::info, math::IVec3,
+    tasks::{AsyncComputeTaskPool, Task}, ecs::{system::Res, schedule::common_conditions::in_state}, log::info, math::IVec3,
 };
 use directories::BaseDirs;
 use futures_lite::future;
@@ -35,7 +35,7 @@ pub fn save_chunk_to_disk(
         let encoded_chunk_data: Vec<u8> = bincode::serialize(&chunk_data)?;
         let mut tmpcursor = std::io::Cursor::new(encoded_chunk_data);
         let compressed_chunk_data = zstd::encode_all(&mut tmpcursor, 3)?;
-        let chunk_path = saves_dir.join(format!("{}.chunk", key));
+        let chunk_path = saves_dir.join(format!("{}.{}.chunk", key.x, key.z));
         // info!("saving chunk to {:?}", chunk_path);
         std::fs::write(chunk_path, compressed_chunk_data)?;
         Ok(())
@@ -55,7 +55,7 @@ pub fn load_chunk_from_disk(
         std::fs::create_dir_all(saves_dir.as_path())?;
 
         // checking if the chunk file exists
-        let chunk_path = saves_dir.join(format!("{}.chunk", key));
+        let chunk_path = saves_dir.join(format!("{}.{}.chunk", key.x, key.z));
         if chunk_path.exists() {
             // info!("loading chunk from {:?}", chunk_path);
             let encoded_chunk_data = std::fs::read(chunk_path)?;
@@ -84,15 +84,16 @@ fn queue_terrain_gen(
     let name = world_settings.name;
 
     let task_gen = |key, seed, name| {
-        load_chunk_from_disk(key, name).ok().flatten().unwrap_or_else(|| {
-            let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
-            TERRAIN_GENERATOR
-                .read()
-                .unwrap()
-                .generate(key, &mut chunk_data, seed);
-            // let _ = save_chunk_to_disk(&chunk_data, key, name);
-            chunk_data
-        })
+        load_chunk_from_disk(key, name).ok()
+            .flatten()
+            .unwrap_or_else(|| {
+                let mut chunk_data = VoxelBuffer::<Voxel, ChunkShape>::new_empty(ChunkShape {});
+                TERRAIN_GENERATOR
+                    .read()
+                    .unwrap()
+                    .generate(key, &mut chunk_data, seed);
+                chunk_data
+            })
     };
 
     new_chunks
@@ -144,7 +145,8 @@ impl Plugin for VoxelWorldTerrainGenPlugin {
             Update,
             (queue_terrain_gen, wrap_up)
                 .chain()
-                .in_set(TerrainGenSet),
+                .in_set(TerrainGenSet)
+                .run_if(in_state(AppState::InGame)),
         );
     }
 }

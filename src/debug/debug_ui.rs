@@ -6,7 +6,7 @@ use bevy::{
     prelude::{
         Color, EventReader, IntoSystemConfigs, IntoSystemSetConfigs,
         KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With, Update,
-    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::{self, gizmos::Gizmos, GizmoConfig}, pbr::wireframe::WireframeConfig,
+    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::{self, gizmos::Gizmos, GizmoConfig}, pbr::wireframe::WireframeConfig, ecs::schedule::common_conditions::in_state,
 };
 use bevy_egui::{
     egui::{self, Rgba, Slider, Button},
@@ -16,11 +16,11 @@ use directories::BaseDirs;
 
 // use bevy_prototype_debug_lines::*;
 
-use crate::voxel::{
+use crate::{voxel::{
     material::VoxelMaterialRegistry, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
     CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, VoxelWorldPlugin,
-};
+}, AppState};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
     egui::Window::new("performance stuff").show(egui.ctx_mut(), |ui| {
@@ -201,7 +201,7 @@ fn display_world_info(
         ui.label(format!("Loaded chunk count: {}", loaded_chunks.len()));
         ui.separator();
         ui.label("Horizontal chunk loading radius");
-        ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 2..=32));
+        ui.add(Slider::new(&mut chunk_loading_radius.horizontal, 2..=48));
         ui.separator();
 
         if ui.button("Clear loaded chunks").clicked() {
@@ -272,81 +272,81 @@ fn toggle_debug_ui_displays(
     };
 }
 
-fn display_material_editor(
-    mut egui: EguiContexts,
-    mut ui_state: ResMut<DebugUIState>,
-    mut materials: ResMut<VoxelMaterialRegistry>,
-) {
-    egui::Window::new("material editor").show(egui.ctx_mut(), |ui| {
-        ui.heading("Select material");
-        egui::containers::ComboBox::from_label("Material")
-            .selected_text(
-                materials
-                    .get_by_id(ui_state.selected_mat)
-                    .unwrap()
-                    .name
-                    .to_string(),
-            )
-            .show_ui(ui, |content| {
-                materials
-                    .iter_mats()
-                    .enumerate()
-                    .for_each(|(mat_index, mat)| {
-                        content.selectable_value(
-                            &mut ui_state.selected_mat,
-                            mat_index as u8,
-                            mat.name,
-                        );
-                    })
-            });
+// fn display_material_editor(
+//     mut egui: EguiContexts,
+//     mut ui_state: ResMut<DebugUIState>,
+//     mut materials: ResMut<VoxelMaterialRegistry>,
+// ) {
+//     egui::Window::new("material editor").show(egui.ctx_mut(), |ui| {
+//         ui.heading("Select material");
+//         egui::containers::ComboBox::from_label("Material")
+//             .selected_text(
+//                 materials
+//                     .get_by_id(ui_state.selected_mat)
+//                     .unwrap()
+//                     .name
+//                     .to_string(),
+//             )
+//             .show_ui(ui, |content| {
+//                 materials
+//                     .iter_mats()
+//                     .enumerate()
+//                     .for_each(|(mat_index, mat)| {
+//                         content.selectable_value(
+//                             &mut ui_state.selected_mat,
+//                             mat_index as u8,
+//                             mat.name,
+//                         );
+//                     })
+//             });
 
-        ui.heading("Material properties");
+//         ui.heading("Material properties");
 
-        // base_color
-        ui.label("Base color");
+//         // base_color
+//         ui.label("Base color");
 
-        let selected_mat = materials.get_mut_by_id(ui_state.selected_mat).unwrap();
+//         let selected_mat = materials.get_mut_by_id(ui_state.selected_mat).unwrap();
 
-        let mut editable_color = Rgba::from_rgba_unmultiplied(
-            selected_mat.base_color.r(),
-            selected_mat.base_color.g(),
-            selected_mat.base_color.b(),
-            selected_mat.base_color.a(),
-        );
-        egui::widgets::color_picker::color_edit_button_rgba(
-            ui,
-            &mut editable_color,
-            egui::color_picker::Alpha::BlendOrAdditive,
-        );
-        selected_mat.base_color = Color::from(editable_color.to_array());
-        ui.label("Perceptual Roughness");
-        ui.add(Slider::new(
-            &mut selected_mat.perceptual_roughness,
-            0.0..=1.0f32,
-        ));
-        ui.label("Metallic");
-        ui.add(Slider::new(&mut selected_mat.metallic, 0.0..=1.0f32));
-        ui.label("Reflectance");
-        ui.add(Slider::new(&mut selected_mat.reflectance, 0.0..=1.0f32));
-        ui.label("Emissive");
+//         let mut editable_color = Rgba::from_rgba_unmultiplied(
+//             selected_mat.base_color.r(),
+//             selected_mat.base_color.g(),
+//             selected_mat.base_color.b(),
+//             selected_mat.base_color.a(),
+//         );
+//         egui::widgets::color_picker::color_edit_button_rgba(
+//             ui,
+//             &mut editable_color,
+//             egui::color_picker::Alpha::BlendOrAdditive,
+//         );
+//         selected_mat.base_color = Color::from(editable_color.to_array());
+//         ui.label("Perceptual Roughness");
+//         ui.add(Slider::new(
+//             &mut selected_mat.perceptual_roughness,
+//             0.0..=1.0f32,
+//         ));
+//         ui.label("Metallic");
+//         ui.add(Slider::new(&mut selected_mat.metallic, 0.0..=1.0f32));
+//         ui.label("Reflectance");
+//         ui.add(Slider::new(&mut selected_mat.reflectance, 0.0..=1.0f32));
+//         ui.label("Emissive");
 
-        let mut editable_emissive = Rgba::from_rgba_unmultiplied(
-            selected_mat.emissive.r(),
-            selected_mat.emissive.g(),
-            selected_mat.emissive.b(),
-            selected_mat.emissive.a(),
-        );
-        egui::widgets::color_picker::color_edit_button_rgba(
-            ui,
-            &mut editable_emissive,
-            egui::color_picker::Alpha::Opaque,
-        );
-        selected_mat.emissive = Color::from(editable_emissive.to_array());
+//         let mut editable_emissive = Rgba::from_rgba_unmultiplied(
+//             selected_mat.emissive.r(),
+//             selected_mat.emissive.g(),
+//             selected_mat.emissive.b(),
+//             selected_mat.emissive.a(),
+//         );
+//         egui::widgets::color_picker::color_edit_button_rgba(
+//             ui,
+//             &mut editable_emissive,
+//             egui::color_picker::Alpha::Opaque,
+//         );
+//         selected_mat.emissive = Color::from(editable_emissive.to_array());
 
-        // ui.label("Opacity");
-        // ui.add(Slider::new(&mut selected_mat.opacity, 0.0..=1.0f32));
-    });
-}
+//         // ui.label("Opacity");
+//         // ui.add(Slider::new(&mut selected_mat.opacity, 0.0..=1.0f32));
+//     });
+// }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, SystemSet)]
 /// Systems related to the debug UIs.
@@ -365,10 +365,13 @@ impl Plugin for DebugUIPlugins {
             // .add_plugins(DebugLinesPlugin::default())
             .add_plugins(EntityCountDiagnosticsPlugin)
             .add_systems(Update, (
-                toggle_debug_ui_displays.in_set(DebugUISet::Toggle),
-                display_material_editor
-                    .in_set(DebugUISet::Display)
-                    .run_if(display_mat_debug_ui_criteria),
+                toggle_debug_ui_displays
+                    .in_set(DebugUISet::Toggle)
+                    .run_if(in_state(AppState::InGame)),
+                // display_material_editor
+                //     .in_set(DebugUISet::Display)
+                //     .run_if(display_mat_debug_ui_criteria)
+                //     .run_if(in_state(AppState::InGame)),
             ))
             .add_systems(
                 Update,
@@ -380,7 +383,8 @@ impl Plugin for DebugUIPlugins {
                     display_window_settings
                 )
                     .in_set(DebugUISet::Display)
-                    .distributive_run_if(display_debug_ui_criteria),
+                    .distributive_run_if(display_debug_ui_criteria)
+                    .run_if(in_state(AppState::InGame)),
             )
             .configure_sets(
                 Update,

@@ -5,14 +5,14 @@ use super::{
     terrain::{TerrainGenSet, save_chunk_to_disk},
     Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT, WorldSettings,
 };
-use crate::voxel::{
+use crate::{voxel::{
     render::{mesh_buffer, ChunkMaterialSingleton, MeshBuffers},
     storage::ChunkMap,
-};
+}, AppState, MyAssets};
 use bevy::{
     pbr::NotShadowCaster,
     prelude::*,
-    render::{primitives::Aabb, render_resource::PrimitiveTopology},
+    render::{primitives::Aabb, render_resource::PrimitiveTopology, texture::{ImageSampler, ImageSamplerDescriptor}},
     tasks::{AsyncComputeTaskPool, Task},
 };
 use futures_lite::future;
@@ -23,14 +23,31 @@ use thread_local::ThreadLocal;
 pub fn prepare_chunks(
     chunks: Query<(Entity, &Chunk), Added<Chunk>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    material: Res<ChunkMaterialSingleton>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     mut cmds: Commands,
+    textures: Res<MyAssets>,
+    asset_server: Res<AssetServer>,
 ) {
+    // let uv_checkers: Handle<Image> = asset_server.load("textures/uv_checker.png");
+
+    // let texture = textures.get_mut(&uv_checkers).unwrap();
+
+    // textures.uv_checkers;
+
+    // texture.sampler = bevy::render::texture::ImageSampler::Descriptor(ImageSamplerDescriptor {
+    //     address_mode_u: bevy::render::texture::ImageAddressMode::Repeat,
+    //     address_mode_v: bevy::render::texture::ImageAddressMode::Repeat,
+    //     ..Default::default()
+    // });
+
     for (chunk, chunk_key) in chunks.iter() {
         let mut entity_commands = cmds.entity(chunk);
         entity_commands.insert((
             MaterialMeshBundle {
-                material: (**material).clone(),
+                material: materials.add(StandardMaterial {
+                    base_color_texture: Some(textures.uv_checkers.clone()),
+                    ..Default::default()
+                }),
                 mesh: meshes.add(Mesh::new(PrimitiveTopology::TriangleList)),
                 transform: Transform::from_translation(chunk_key.0.as_vec3() - Vec3::new(1.0, 1.0, 1.0)),
                 visibility: Visibility::Hidden,
@@ -58,6 +75,8 @@ fn queue_mesh_tasks(
     let name = world_settings.name;
 
     let mesh_gen = |buffer, key, name| {
+        let _ = save_chunk_to_disk(&buffer, key, name);
+
         let mut mesh_buffers = SHARED_MESH_BUFFERS
         .get_or(|| {
             RefCell::new(MeshBuffers::<Voxel, ChunkShape>::new(ChunkShape {}))
@@ -67,8 +86,6 @@ fn queue_mesh_tasks(
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         mesh_buffer(&buffer, &mut mesh_buffers, &mut mesh, 1.0);
 
-        let _ = save_chunk_to_disk(&buffer, key, name);
-
         mesh
     };
 
@@ -76,8 +93,6 @@ fn queue_mesh_tasks(
         .iter_dirty()
         .filter_map(|key| chunk_entities.entity(*key).map(|entity| (key, entity)))
         .filter_map(|(key, entity)| {
-            // let buffer = chunks.buffer_at(*key);
-            // save_chunk_to_disk(&buffer, key, name);
             chunks
                 .buffer_at(*key)
                 .map(|buffer| (buffer.clone(), entity, *key))
@@ -129,7 +144,8 @@ impl Plugin for VoxelWorldMeshingPlugin {
             Update,
             (prepare_chunks, queue_mesh_tasks, process_mesh_tasks)
                 .chain()
-                .in_set(ChunkMeshingSet),
+                .in_set(ChunkMeshingSet)
+                .run_if(in_state(AppState::InGame)),
         );
     }
 }

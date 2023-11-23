@@ -4,9 +4,6 @@
     clippy::module_inception
 )]
 
-
-use std::path::{PathBuf, Path};
-
 use bevy::{
     prelude::*,
     diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin
@@ -14,18 +11,27 @@ use bevy::{
     // },
     // app::AppExit,
 };
+
 // use bevy_embedded_assets::EmbeddedAssetPlugin;
 use voxel::player::PlayerSettings;
 
-use bevy_vector_shapes::prelude::*;
-
 use bevy::core_pipeline::fxaa::Fxaa;
+
+use bevy_asset_loader::prelude::*;
+
+use directories::BaseDirs;
 
 mod systems;
 mod debug;
 mod voxel;
 
-use directories::BaseDirs;
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+enum AppState {
+    #[default]
+    Loading,
+    InGame,
+}
+
 
 fn main() {
     let mut app = App::default();
@@ -60,9 +66,13 @@ fn main() {
             // })
             WireframePlugin,
         ))
+        .add_state::<AppState>()
+        .add_loading_state(
+            LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame),
+        )
+        .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
         .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_plugins(ShapePlugin::default())
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
         .add_plugins(voxel::VoxelWorldPlugin)
         .add_plugins(debug::DebugUIPlugins)
@@ -73,12 +83,6 @@ fn main() {
         // .add_system(update_camera_settings.after(setup))
         .run();
 }
-
-// #[derive(Resource, Clone, Copy)]
-// pub struct BaseDirectories {
-//     pub data_dir: &'static str,
-//     pub saves_dir: &'static str,
-// }
 
 fn setup(
     settings: Res<PlayerSettings>,
@@ -91,20 +95,15 @@ fn setup(
         let saves_dir = base_dirs.data_dir().join(".yavafg").join("saved_worlds");
         info!("saves directory: {}", saves_dir.display());
 
-        // let ddir = data_dir.clone();
-        // let sdir = saves_dir.clone();
-
-        // cmds.insert_resource(BaseDirectories {
-        //     data_dir: ddir.to_str().unwrap(),
-        //     saves_dir: sdir.to_str().unwrap(),
-        // });
-
         std::fs::create_dir_all(data_dir.as_path()).unwrap();
         std::fs::create_dir_all(saves_dir.as_path()).unwrap();
 
     } else {
         panic!("No valid directory path could be retrieved from the operating system.");
     }
+
+    // let uv_checkers: Handle<Image> = asset_server.load("textures/uv_checker.png");
+    // cmds.insert_resource(uv_checkers);
 
     cmds.spawn(Camera3dBundle {
         projection: bevy::prelude::Projection::Perspective(PerspectiveProjection {
@@ -127,4 +126,13 @@ fn setup(
         color: Color::WHITE,
         brightness: 1.0,
     });
+}
+
+#[derive(AssetCollection, Resource)]
+struct MyAssets {
+    #[asset(path = "textures/uv_checker.png")]
+    uv_checkers: Handle<Image>,
+
+    #[asset(path = "textures/crosshair.png")]
+    crosshair: Handle<Image>,
 }
