@@ -24,7 +24,7 @@ pub struct MaterialRegistryInfo {
 
 /// Helper / marker trait for voxel materials.
 pub trait VoxelMaterial {
-    const ID: u16;
+    const ID: u8;
 
     fn into_voxel() -> Voxel {
         Voxel(Self::ID)
@@ -40,7 +40,7 @@ macro_rules! voxel_material {
             pub const NAME: &'static str = stringify!($types);
         }
         impl $crate::voxel::material::VoxelMaterial for $types {
-            const ID: u16 = $id;
+            const ID: u8 = $id;
         }
     };
 }

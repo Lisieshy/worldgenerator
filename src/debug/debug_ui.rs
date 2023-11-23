@@ -316,7 +316,7 @@ fn display_material_editor(
         egui::widgets::color_picker::color_edit_button_rgba(
             ui,
             &mut editable_color,
-            egui::color_picker::Alpha::Opaque,
+            egui::color_picker::Alpha::BlendOrAdditive,
         );
         selected_mat.base_color = Color::from(editable_color.to_array());
         ui.label("Perceptual Roughness");

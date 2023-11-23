@@ -85,7 +85,7 @@ impl Plugin for VoxelWorldBaseMaterialsPlugin {
         });
 
         registry.register_material::<Water>(MaterialRegistryInfo {
-            base_color: *Color::rgb_u8(78, 167, 215).set_a(0.4),
+            base_color: *Color::rgb_u8(78, 167, 215).set_a(0.3),
             name: Water::NAME,
             flags: VoxelMaterialFlags::LIQUID,
             emissive: Color::BLACK,

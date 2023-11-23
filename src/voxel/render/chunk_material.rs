@@ -34,13 +34,15 @@ pub struct GpuTerrainUniforms {
     pub render_distance: u32,
     #[uniform(1)]
     pub materials: [GpuVoxelMaterial; 256],
+    alpha_mode: AlphaMode,
 }
 
 impl Default for GpuTerrainUniforms {
     fn default() -> Self {
         Self {
-            render_distance: 16,
+            render_distance: 8,
             materials: [default(); 256],
+            alpha_mode: AlphaMode::Opaque,
         }
     }
 }
@@ -52,6 +54,15 @@ impl Material for GpuTerrainUniforms {
 
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
         "shaders/terrain_pipeline.wgsl".into()
+    }
+
+    fn alpha_mode(&self) -> AlphaMode {
+        if self.materials.iter().any(|mat| mat.base_color.a() < 1.) {
+            AlphaMode::Blend
+        } else {
+            AlphaMode::Opaque
+        }
+        // self.alpha_mode
     }
 
     fn specialize(
@@ -84,6 +95,7 @@ fn update_chunk_material_singleton(
                 ..Default::default()
             }; 256],
             render_distance: 32,
+            ..Default::default()
         };
 
         voxel_materials
