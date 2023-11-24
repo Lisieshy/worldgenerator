@@ -9,9 +9,9 @@ use bevy_vector_shapes::shapes::{DiscPainter, LinePainter, Cap, ThicknessType};
 use std::f32::consts::PI;
 
 use crate::AppState;
-use crate::debug::DebugUISet;
+use crate::debug::{DebugUISet, DebugUIState};
 use crate::voxel::Voxel;
-use crate::voxel::material::VoxelMaterial;
+use crate::voxel::material::{VoxelMaterial, VoxelMaterialRegistry};
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::world::chunks::get_chunk_for_pos;
 
@@ -67,7 +67,11 @@ pub fn handle_player_inputs(
     mut chunks: ResMut<ChunkMap<Voxel, ChunkShape>>,
     mut dirty_chunks: ResMut<DirtyChunks>,
     mut raycast: Raycast,
-    mut painter: ShapePainter,
+    mut materials: ResMut<VoxelMaterialRegistry>,
+
+    // under this is only for debug/test purposes. don't forget to remove it later
+    debug_ui_state: Res<DebugUIState>,
+    // mut painter: ShapePainter,
     mut gizmos: Gizmos,
 ) {
     let window = windows.single();
@@ -253,7 +257,7 @@ pub fn handle_player_inputs(
                     pos_in_chunk.x as u32,
                     pos_in_chunk.y as u32,
                     pos_in_chunk.z as u32,
-                ].into()) = Rock::into_voxel();
+                ].into()) = Voxel(debug_ui_state.selected_mat);
             }).and_then(|_| {
                 dirty_chunks.mark_dirty(chunk_pos.as_ivec3());
                 Some(())

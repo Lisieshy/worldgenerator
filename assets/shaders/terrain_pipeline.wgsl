@@ -15,14 +15,16 @@
 #import bevy_core_pipeline::tonemapping::tone_mapping
 
 #import "shaders/voxel_data.wgsl"::{voxel_data_extract_normal, voxel_data_extract_material_index}
-#import "shaders/terrain_uniforms.wgsl"::{VoxelMat, voxel_materials, render_distance, TERRAIN_CHUNK_LENGTH}
+#import "shaders/terrain_uniforms.wgsl"::{VoxelMat, voxel_materials, color_texture, color_sampler, TERRAIN_CHUNK_LENGTH}
 #import "shaders/noise.wgsl"::hash
 #import "shaders/fog.wgsl"::ffog_apply_fog
 
 struct Vertex {
     @builtin(instance_index) instance_index: u32,
     @location(0) position: vec3<f32>,
-    @location(1) voxel_data: u32,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+    @location(3) voxel_data: u32,
 };
 
 struct VertexOutput {
@@ -39,9 +41,10 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     let world_position = bevy_pbr::mesh_functions::mesh_position_local_to_world(model, vec4<f32>(vertex.position, 1.0));
 
     var out: VertexOutput;
-    let voxel_normal = voxel_data_extract_normal(vertex.voxel_data);
+    // let voxel_normal = voxel_data_extract_normal(vertex.voxel_data);
     out.clip_position = view_transformations::position_world_to_clip(world_position.xyz);
-    out.voxel_normal = voxel_normal;
+    // out.voxel_normal = voxel_normal;
+    out.voxel_normal = vertex.normal;
     out.voxel_data = vertex.voxel_data;
     out.world_position = world_position.xyz;
     out.instance_index = vertex.instance_index;
@@ -65,7 +68,10 @@ fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, frag: Fragment) -> PbrI
     var base_color: vec4<f32> = voxel_mat.base_color;
     base_color = base_color + hash(vec4<f32>(floor(frag.world_position - frag.voxel_normal * 0.5), 1.0)) * 0.0226;
 
+
     let voxel_world_normal = bevy_pbr::mesh_functions::mesh_normal_local_to_world(frag.voxel_normal, frag.instance_index);
+
+    // var base_color: vec4<f32> = textureSample(color_texture, color_sampler, vec2<f32>(voxel_mat.base_color.r, 0.0)).rgba;
 
     var pbr_input: PbrInput = pbr_input_new();
     pbr_input.material.metallic = voxel_mat.metallic;
@@ -94,9 +100,11 @@ fn fragment(frag: Fragment) -> @location(0) vec4<f32> {
     var pbr_input = prepare_pbr_input_from_voxel_mat(material, frag);
     let pbr_colour = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
 
+    return pbr_colour;
+
     // @todo: switch to bevy_pbr::fog
 
     //fragment distance from camera, used to determine amount of fog to apply.
-    let fog_distance = distance(frag.world_position, view.world_position);
-    return ffog_apply_fog(fog_distance, f32(render_distance) * f32(TERRAIN_CHUNK_LENGTH), f32(TERRAIN_CHUNK_LENGTH), pbr_colour);
+    // let fog_distance = distance(frag.world_position, view.world_position);
+    // return ffog_apply_fog(fog_distance, f32(render_distance) * f32(TERRAIN_CHUNK_LENGTH), f32(TERRAIN_CHUNK_LENGTH), pbr_colour);
 }

@@ -112,7 +112,7 @@ fn create_chunks(
                 cmds.spawn((
                     Chunk(request),
                     AabbGizmo { ..Default::default() },
-                    Wireframe
+                    // Wireframe
                 )).id()
             )
         );

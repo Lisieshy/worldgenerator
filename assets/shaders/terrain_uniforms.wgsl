@@ -8,12 +8,17 @@ struct VoxelMat {
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
-    alpha: f32,
 };
 
-@group(1) @binding(0)
-var<uniform> render_distance: u32;
+// @group(1) @binding(0)
+// var<uniform> render_distance: u32;
 
 // A GPU-suited representation of voxel materials.
-@group(1) @binding(1)
+@group(1) @binding(0)
 var<uniform> voxel_materials: array<VoxelMat, 256>;
+
+@group(1) @binding(1)
+var color_texture: texture_2d<f32>;
+
+@group(1) @binding(2)
+var color_sampler: sampler;

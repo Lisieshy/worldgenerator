@@ -1,5 +1,197 @@
-use crate::voxel::material::VoxelMaterialRegistry;
-use arrayvec::ArrayVec;
+// use crate::voxel::material::VoxelMaterialRegistry;
+// use arrayvec::ArrayVec;
+// use bevy::{
+//     prelude::*,
+//     reflect::TypePath,
+//     render::{
+//         extract_component::ExtractComponent,
+//         mesh::MeshVertexAttribute,
+//         render_resource::{AsBindGroup, ShaderType, VertexFormat},
+//     },
+// };
+
+// #[derive(Component, Clone, Default, ExtractComponent, TypePath)]
+// /// A marker component for voxel meshes.
+// pub struct VoxelTerrainMesh;
+
+// impl VoxelTerrainMesh {
+//     pub const ATTRIBUTE_DATA: MeshVertexAttribute =
+//         MeshVertexAttribute::new("Vertex_Data", 0x696969, VertexFormat::Uint32);
+// }
+
+// #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+// pub struct VoxelUniforms {
+//     #[uniform(0)]
+//     pub render_distance: u32,
+//     #[uniform(1)]
+//     pub materials:
+// }
+
+// // #[derive(ShaderType, Clone, Copy, Debug, Default)]
+// // pub struct GpuVoxelMaterial {
+// //     base_color: Color,
+// //     flags: u32,
+// //     emissive: Color,
+// //     perceptual_roughness: f32,
+// //     metallic: f32,
+// //     reflectance: f32,
+// // }
+
+// #[derive(ShaderType, Debug, Clone, Default)]
+// pub struct ChunkVoxelMaterials {
+//     pub materials: ArrayVec<StandardMaterial, 256>,
+// }
+
+// impl Material for ChunkVoxelMaterials {
+//     fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
+//         "shaders/terrain_pipeline.wgsl".into()
+//     }
+
+//     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
+//         "shaders/terrain_pipeline.wgsl".into()
+//     }
+
+//     fn specialize(
+//         _pipeline: &bevy::pbr::MaterialPipeline<Self>,
+//         descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
+//         layout: &bevy::render::mesh::MeshVertexBufferLayout,
+//         _key: bevy::pbr::MaterialPipelineKey<Self>,
+//     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
+//         let vertex_layout = layout.get_layout(&[
+//             Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
+//             VoxelTerrainMesh::ATTRIBUTE_DATA.at_shader_location(1),
+//             // Mesh::ATTRIBUTE_NORMAL.at_shader_location(1),
+//             // Mesh::ATTRIBUTE_UV_0.at_shader_location(2),
+//         ])?;
+//         descriptor.vertex.buffers = vec![vertex_layout];
+//         Ok(())
+//     }
+// }
+
+// // impl Default for ChunkVoxelMaterials {
+// //     fn default() -> Self {
+// //         Self {
+// //             materials: ArrayVec::new(),
+// //         }
+// //     }
+// // }
+
+// // impl Default for GpuTerrainUniforms {
+// //     fn default() -> Self {
+// //         Self {
+// //             render_distance: 8,
+// //             materials: [default(); 256],
+// //         }
+// //     }
+// // }
+
+// // impl Material for GpuTerrainUniforms {
+//     // fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
+//     //     "shaders/terrain_pipeline.wgsl".into()
+//     // }
+
+//     // fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
+//     //     "shaders/terrain_pipeline.wgsl".into()
+//     // }
+
+//     // fn alpha_mode(&self) -> AlphaMode {
+//     //     if self.materials.iter().any(|mat| mat.base_color.a() < 1.) {
+//     //         AlphaMode::Blend
+//     //     } else {
+//     //         AlphaMode::Opaque
+//     //     }
+//     //     // self.alpha_mode
+//     // }
+
+//     // fn specialize(
+//     //     _pipeline: &bevy::pbr::MaterialPipeline<Self>,
+//     //     descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
+//     //     layout: &bevy::render::mesh::MeshVertexBufferLayout,
+//     //     _key: bevy::pbr::MaterialPipelineKey<Self>,
+//     // ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
+//     //     let vertex_layout = layout.get_layout(&[
+//     //         Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
+//     //         VoxelTerrainMesh::ATTRIBUTE_DATA.at_shader_location(1),
+//     //     ])?;
+//     //     descriptor.vertex.buffers = vec![vertex_layout];
+//     //     Ok(())
+//     // }
+// // }
+
+// fn update_chunk_material_singleton(
+//     mut commands: Commands,
+//     mut materials: ResMut<Assets<ChunkVoxelMaterials>>,
+//     chunk_material: ResMut<ChunkMaterialSingleton>,
+//     voxel_materials: Res<VoxelMaterialRegistry>,
+//     mut chunk_entities: Query<(Entity, &mut Handle<ChunkVoxelMaterials>)>,
+// ) {
+//     if chunk_material.is_changed() {
+//         // let mut gpu_mats = ChunkVoxelMaterials {
+//         //     materials: [StandardMaterial {
+//         //         base_color: Color::WHITE,
+//         //         ..Default::default()
+//         //     }; 256],
+//         // };
+
+//         let mut gpu_mats = ChunkVoxelMaterials::default();
+
+//         voxel_materials
+//             .iter_mats()
+//             .enumerate()
+//             .for_each(|(index, material)| {
+//                 let i = gpu_mats.materials.try_insert(index, material.material.clone());
+//                 if i.is_err() {
+//                     gpu_mats.materials.clear();
+//                 }
+//                 // gpu_mats.materials[index].base_color = material.base_color;
+//                 // gpu_mats.materials[index].flags = material.flags.bits();
+//                 // gpu_mats.materials[index].emissive = material.emissive;
+//                 // gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
+//                 // gpu_mats.materials[index].metallic = material.metallic;
+//                 // gpu_mats.materials[index].reflectance = material.reflectance;
+//             });
+
+        
+//         let chunk_material = materials.add(gpu_mats);
+//         commands.insert_resource(ChunkMaterialSingleton(chunk_material.clone()));
+
+//         for (_, mut mat) in &mut chunk_entities {
+//             *mat = chunk_material.clone();
+//         }
+//     }
+// }
+
+// #[derive(Resource, Deref, DerefMut)]
+// pub struct ChunkMaterialSingleton(Handle<ChunkVoxelMaterials>);
+
+// impl FromWorld for ChunkMaterialSingleton {
+//     fn from_world(world: &mut World) -> Self {
+//         let mut materials = world.resource_mut::<Assets<ChunkVoxelMaterials>>();
+//         Self(materials.add(ChunkVoxelMaterials::default()))
+//     }
+// }
+
+// #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, SystemSet)]
+// pub struct ChunkMaterialSet;
+
+// pub struct ChunkMaterialPlugin;
+
+// impl Plugin for ChunkMaterialPlugin {
+//     fn build(&self, app: &mut App) {
+//         // @todo: figure out race conditions w/ other systems
+//         app.add_plugins(MaterialPlugin::<ChunkVoxelMaterials>::default())
+//             .init_resource::<ChunkMaterialSingleton>()
+//             .add_systems(
+//                 Update,
+//                 update_chunk_material_singleton
+//                     .run_if(resource_changed::<VoxelMaterialRegistry>())
+//                     .in_set(ChunkMaterialSet)
+//             );
+//     }
+// }
+
+
+use crate::{voxel::material::VoxelMaterialRegistry, MyAssets, AppState};
 use bevy::{
     prelude::*,
     reflect::TypePath,
@@ -10,31 +202,48 @@ use bevy::{
     },
 };
 
-#[derive(Component, Clone, Default, ExtractComponent, TypePath)]
+#[derive(Component, Clone, Default, ExtractComponent)]
 /// A marker component for voxel meshes.
 pub struct VoxelTerrainMesh;
 
 impl VoxelTerrainMesh {
     pub const ATTRIBUTE_DATA: MeshVertexAttribute =
-        MeshVertexAttribute::new("Vertex_Data", 0x696969, VertexFormat::Uint32);
+        MeshVertexAttribute::new("Vertex_Data", 69696969, VertexFormat::Uint32);
 }
 
-// #[derive(ShaderType, Clone, Copy, Debug, Default)]
-// pub struct GpuVoxelMaterial {
-//     base_color: Color,
-//     flags: u32,
-//     emissive: Color,
-//     perceptual_roughness: f32,
-//     metallic: f32,
-//     reflectance: f32,
-// }
+#[derive(ShaderType, Clone, Copy, Debug, Default)]
+pub struct GpuVoxelMaterial {
+    base_color: Color,
+    flags: u32,
+    emissive: Color,
+    perceptual_roughness: f32,
+    metallic: f32,
+    reflectance: f32,
+    // alpha: f32,
+}
 
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
-pub struct ChunkVoxelMaterials {
-    pub materials: ArrayVec<StandardMaterial, 256>,
+pub struct GpuTerrainUniforms {
+    // #[uniform(0)]
+    // pub render_distance: u32,
+    #[uniform(0)]
+    pub materials: [GpuVoxelMaterial; 256],
+    #[texture(1)]
+    #[sampler(2)]
+    pub color_texture: Option<Handle<Image>>,
 }
 
-impl Material for ChunkVoxelMaterials {
+impl Default for GpuTerrainUniforms {
+    fn default() -> Self {
+        Self {
+            // render_distance: 16,
+            materials: [default(); 256],
+            color_texture: None,
+        }
+    }
+}
+
+impl Material for GpuTerrainUniforms {
     fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
         "shaders/terrain_pipeline.wgsl".into()
     }
@@ -42,6 +251,14 @@ impl Material for ChunkVoxelMaterials {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
         "shaders/terrain_pipeline.wgsl".into()
     }
+
+    // fn alpha_mode(&self) -> AlphaMode {
+    //     if self.materials.iter().any(|mat| mat.base_color.a() < 1.) {
+    //         AlphaMode::Blend
+    //     } else {
+    //         AlphaMode::Opaque
+    //     }
+    // }
 
     fn specialize(
         _pipeline: &bevy::pbr::MaterialPipeline<Self>,
@@ -51,97 +268,46 @@ impl Material for ChunkVoxelMaterials {
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
         let vertex_layout = layout.get_layout(&[
             Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
-            VoxelTerrainMesh::ATTRIBUTE_DATA.at_shader_location(1),
+            Mesh::ATTRIBUTE_NORMAL.at_shader_location(1),
+            Mesh::ATTRIBUTE_UV_0.at_shader_location(2),
+            VoxelTerrainMesh::ATTRIBUTE_DATA.at_shader_location(3),
         ])?;
         descriptor.vertex.buffers = vec![vertex_layout];
         Ok(())
     }
 }
 
-impl Default for ChunkVoxelMaterials {
-    fn default() -> Self {
-        Self {
-            materials: ArrayVec::new(),
-        }
-    }
-}
-
-// impl Default for GpuTerrainUniforms {
-//     fn default() -> Self {
-//         Self {
-//             render_distance: 8,
-//             materials: [default(); 256],
-//         }
-//     }
-// }
-
-// impl Material for GpuTerrainUniforms {
-    // fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
-    //     "shaders/terrain_pipeline.wgsl".into()
-    // }
-
-    // fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
-    //     "shaders/terrain_pipeline.wgsl".into()
-    // }
-
-    // fn alpha_mode(&self) -> AlphaMode {
-    //     if self.materials.iter().any(|mat| mat.base_color.a() < 1.) {
-    //         AlphaMode::Blend
-    //     } else {
-    //         AlphaMode::Opaque
-    //     }
-    //     // self.alpha_mode
-    // }
-
-    // fn specialize(
-    //     _pipeline: &bevy::pbr::MaterialPipeline<Self>,
-    //     descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
-    //     layout: &bevy::render::mesh::MeshVertexBufferLayout,
-    //     _key: bevy::pbr::MaterialPipelineKey<Self>,
-    // ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
-    //     let vertex_layout = layout.get_layout(&[
-    //         Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
-    //         VoxelTerrainMesh::ATTRIBUTE_DATA.at_shader_location(1),
-    //     ])?;
-    //     descriptor.vertex.buffers = vec![vertex_layout];
-    //     Ok(())
-    // }
-// }
-
 fn update_chunk_material_singleton(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ChunkVoxelMaterials>>,
+    mut materials: ResMut<Assets<GpuTerrainUniforms>>,
     chunk_material: ResMut<ChunkMaterialSingleton>,
     voxel_materials: Res<VoxelMaterialRegistry>,
-    mut chunk_entities: Query<(Entity, &mut Handle<ChunkVoxelMaterials>)>,
+    mut chunk_entities: Query<(Entity, &mut Handle<GpuTerrainUniforms>)>,
+    assets: Res<MyAssets>,
 ) {
     if chunk_material.is_changed() {
-        // let mut gpu_mats = ChunkVoxelMaterials {
-        //     materials: [StandardMaterial {
-        //         base_color: Color::WHITE,
-        //         ..Default::default()
-        //     }; 256],
-        // };
-
-        let mut gpu_mats = ChunkVoxelMaterials::default();
+        let mut gpu_mats = GpuTerrainUniforms {
+            materials: [GpuVoxelMaterial {
+                base_color: Color::WHITE,
+                flags: 0,
+                ..Default::default()
+            }; 256],
+            color_texture: Some(assets.uv_checkers.clone()),
+            // render_distance: 32,
+        };
 
         voxel_materials
             .iter_mats()
             .enumerate()
             .for_each(|(index, material)| {
-                let i = gpu_mats.materials.try_insert(index, material.material.clone());
-                if i.is_err() {
-                    gpu_mats.materials.clear();
-                }
-                // gpu_mats.materials[index].base_color = material.base_color;
-                // gpu_mats.materials[index].flags = material.flags.bits();
-                // gpu_mats.materials[index].emissive = material.emissive;
-                // gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
-                // gpu_mats.materials[index].metallic = material.metallic;
-                // gpu_mats.materials[index].reflectance = material.reflectance;
+                gpu_mats.materials[index].base_color = material.base_color;
+                gpu_mats.materials[index].flags = material.flags.bits();
+                gpu_mats.materials[index].emissive = material.emissive;
+                gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
+                gpu_mats.materials[index].metallic = material.metallic;
+                gpu_mats.materials[index].reflectance = material.reflectance;
             });
 
-        
         let chunk_material = materials.add(gpu_mats);
         commands.insert_resource(ChunkMaterialSingleton(chunk_material.clone()));
 
@@ -152,16 +318,17 @@ fn update_chunk_material_singleton(
 }
 
 #[derive(Resource, Deref, DerefMut)]
-pub struct ChunkMaterialSingleton(Handle<ChunkVoxelMaterials>);
+pub struct ChunkMaterialSingleton(Handle<GpuTerrainUniforms>);
 
 impl FromWorld for ChunkMaterialSingleton {
     fn from_world(world: &mut World) -> Self {
-        let mut materials = world.resource_mut::<Assets<ChunkVoxelMaterials>>();
-        Self(materials.add(ChunkVoxelMaterials::default()))
+        let mut materials = world.resource_mut::<Assets<GpuTerrainUniforms>>();
+        Self(materials.add(GpuTerrainUniforms::default()))
     }
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, SystemSet)]
+/// Systems that prepare the global [ChunkMaterialSingleton] value.
 pub struct ChunkMaterialSet;
 
 pub struct ChunkMaterialPlugin;
@@ -169,13 +336,14 @@ pub struct ChunkMaterialPlugin;
 impl Plugin for ChunkMaterialPlugin {
     fn build(&self, app: &mut App) {
         // @todo: figure out race conditions w/ other systems
-        app.add_plugins(MaterialPlugin::<ChunkVoxelMaterials>::default())
+        app.add_plugins(MaterialPlugin::<GpuTerrainUniforms>::default())
             .init_resource::<ChunkMaterialSingleton>()
             .add_systems(
                 Update,
                 update_chunk_material_singleton
                     .run_if(resource_changed::<VoxelMaterialRegistry>())
                     .in_set(ChunkMaterialSet)
+                    .run_if(in_state(AppState::InGame)),
             );
     }
 }
