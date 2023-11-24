@@ -122,7 +122,7 @@ impl Default for VoxelMaterialRegistry {
 }
 
 // The material with ID #0;
-pub struct Void;
+// pub struct Void;
 
 pub struct VoxelMaterialPlugin;
 impl Plugin for VoxelMaterialPlugin {

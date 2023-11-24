@@ -29,10 +29,11 @@ struct Vertex {
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
-    @location(0) voxel_normal: vec3<f32>,
+    @location(0) normal: vec3<f32>,
     @location(1) voxel_data: u32,
     @location(2) world_position: vec3<f32>,
     @location(3) instance_index: u32,
+    @location(4) uv: vec2<f32>,
 };
 
 @vertex
@@ -44,7 +45,7 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     // let voxel_normal = voxel_data_extract_normal(vertex.voxel_data);
     out.clip_position = view_transformations::position_world_to_clip(world_position.xyz);
     // out.voxel_normal = voxel_normal;
-    out.voxel_normal = vertex.normal;
+    out.normal = vertex.normal;
     out.voxel_data = vertex.voxel_data;
     out.world_position = world_position.xyz;
     out.instance_index = vertex.instance_index;
@@ -55,21 +56,22 @@ fn vertex(vertex: Vertex) -> VertexOutput {
 struct Fragment {
     @builtin(position) frag_coord: vec4<f32>,
     @builtin(front_facing) front_facing: bool,
-    /// The normalized normal of the voxel.
-    @location(0) voxel_normal: vec3<f32>,
+    /// The normal of the voxel.
+    @location(0) normal: vec3<f32>,
     /// The voxel data.
     @location(1) voxel_data: u32,
     /// The world position of the voxel vertex.
     @location(2) world_position: vec3<f32>,
     @location(3) instance_index: u32,
+    @location(4) uv: vec2<f32>,
 };
 
 fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, frag: Fragment) -> PbrInput {
     var base_color: vec4<f32> = voxel_mat.base_color;
-    base_color = base_color + hash(vec4<f32>(floor(frag.world_position - frag.voxel_normal * 0.5), 1.0)) * 0.0226;
+    base_color = base_color + hash(vec4<f32>(floor(frag.world_position - frag.normal * 0.5), 1.0)) * 0.0226;
 
 
-    let voxel_world_normal = bevy_pbr::mesh_functions::mesh_normal_local_to_world(frag.voxel_normal, frag.instance_index);
+    let voxel_world_normal = bevy_pbr::mesh_functions::mesh_normal_local_to_world(frag.normal, frag.instance_index);
 
     // var base_color: vec4<f32> = textureSample(color_texture, color_sampler, vec2<f32>(voxel_mat.base_color.r, 0.0)).rgba;
 
@@ -101,6 +103,8 @@ fn fragment(frag: Fragment) -> @location(0) vec4<f32> {
     let pbr_colour = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
 
     return pbr_colour;
+
+    // return material.base_color;
 
     // @todo: switch to bevy_pbr::fog
 

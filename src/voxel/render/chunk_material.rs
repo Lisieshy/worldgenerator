@@ -252,14 +252,6 @@ impl Material for GpuTerrainUniforms {
         "shaders/terrain_pipeline.wgsl".into()
     }
 
-    // fn alpha_mode(&self) -> AlphaMode {
-    //     if self.materials.iter().any(|mat| mat.base_color.a() < 1.) {
-    //         AlphaMode::Blend
-    //     } else {
-    //         AlphaMode::Opaque
-    //     }
-    // }
-
     fn specialize(
         _pipeline: &bevy::pbr::MaterialPipeline<Self>,
         descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,

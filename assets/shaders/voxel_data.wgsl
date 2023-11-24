@@ -1,5 +1,3 @@
-
-
 //
 // Layout of voxel information encoded into a single u32
 //
@@ -9,7 +7,9 @@
 // X: X position
 // Y: Y position
 // Z: Z position
+// ^ all unused bits?
 // N: normal index in the VOXEL_NORMALS array
+// defined, but not used either
 // MATERIAL: material index in the palette
 // 
 // The remaining 5 free bits could be used to store UV data or additional info or even extend voxel material id size.
@@ -18,10 +18,10 @@
 var<private> VOXEL_NORMALS: array<vec3<f32>, 6> = array<vec3<f32>, 6>(
     vec3<f32>(-1., 0., 0.),
     vec3<f32>(0., -1., 0.),
-    vec3<f32>(0., 0., -1.), 
-    vec3<f32>(1., 0., 0.), 
-    vec3<f32>(0., 1., 0.), 
-    vec3<f32>(0., 0., 1.), 
+    vec3<f32>(0., 0., -1.),
+    vec3<f32>(1., 0., 0.),
+    vec3<f32>(0., 1., 0.),
+    vec3<f32>(0., 0., 1.),
 );
 
 // Extracts the normal face index from the encoded voxel data

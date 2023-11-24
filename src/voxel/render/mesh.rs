@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::voxel::{storage::VoxelBuffer, MaterialVoxel};
 use bevy::{
     prelude::Mesh,
-    render::mesh::{Indices, VertexAttributeValues},
+    render::mesh::{Indices, VertexAttributeValues}, log::info,
 };
 use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG, UnitQuadBuffer, visible_block_faces};
 use ndcopy::copy3;
@@ -176,6 +176,26 @@ pub fn mesh_buffer<T, S>(
                         .voxel_at(quad.minimum.map(|x| x - 1).into())
                         .as_mat_id() as u32; 4],
             );
+
+            // let mat_index = (block_face_normal_index as u32) << 8u32 | buffer
+            //     .voxel_at(quad.minimum.map(|x| x - 1).into())
+            //     .as_mat_id() as u32;
+
+            // let uvs = &face.tex_coords(
+            //     RIGHT_HANDED_Y_UP_CONFIG.u_flip_face,
+            //     true,
+            //     &quad,
+            // );
+
+            // convert mat_index to a float and keep the bits intact
+            // let mat_index = [f32::from_bits(mat_index); 3];
+
+            // data.extend_from_slice(
+            //     &[mat_index; 3],
+            // );
+
+            // info!("mat_index: {:#034b}", mat_index);
+            // info!("voxel_data: {:#034b}", data.last().unwrap());
         }
     }
 
@@ -204,6 +224,11 @@ pub fn mesh_buffer<T, S>(
         VoxelTerrainMesh::ATTRIBUTE_DATA,
         VertexAttributeValues::Uint32(data),
     );
+
+    // render_mesh.insert_attribute(
+    //     VoxelTerrainMesh::ATTRIBUTE_DATA,
+    //     VertexAttributeValues::Float32x3(data),
+    // );
 
     render_mesh.set_indices(Some(Indices::U32(indices.clone())));
 }
