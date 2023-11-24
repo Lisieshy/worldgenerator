@@ -14,7 +14,7 @@ use self::{
     noise::{Heightmap, get_chunk_continentalness, get_chunk_erosion, get_chunk_peaks_valleys},
 };
 
-use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH, materials::{Rock, Water}, material::VoxelMaterial };
+use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH, materials::Rock, material::VoxelMaterial };
 
 pub mod biomes;
 
@@ -133,7 +133,7 @@ impl Plugin for TerrainGeneratorPlugin {
     fn build(&self, _: &mut bevy::prelude::App) {
         TERRAIN_GENERATOR
             .write()
-            .unwrap()
+            .unwrap();
             // .register_biome_generator(
             //     0.0f32,
             //     biomes::BasicPlainsBiomeTerrainGenerator.into_boxed_generator(),
@@ -146,14 +146,14 @@ impl Plugin for TerrainGeneratorPlugin {
             //     3.21,
             //     biomes::BasicSnowyPlainsBiomeTerrainGenerator.into_boxed_generator(),
             // )
-            .register_biome(
-                biomes::BasicPlainsBiomeTerrainGenerator.into_boxed_generator(),
-            )
-            .register_biome(
-                biomes::BasicDesertBiomeTerrainGenerator.into_boxed_generator(),
-            )
-            .register_biome(
-                biomes::BasicSnowyPlainsBiomeTerrainGenerator.into_boxed_generator(),
-            );
+            // .register_biome(
+            //     biomes::BasicPlainsBiomeTerrainGenerator.into_boxed_generator(),
+            // )
+            // .register_biome(
+            //     biomes::BasicDesertBiomeTerrainGenerator.into_boxed_generator(),
+            // )
+            // .register_biome(
+            //     biomes::BasicSnowyPlainsBiomeTerrainGenerator.into_boxed_generator(),
+            // );
     }
 }

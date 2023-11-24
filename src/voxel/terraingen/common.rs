@@ -3,7 +3,7 @@ use ilattice::{glam::UVec2, glam::UVec3, prelude::Extent};
 
 use crate::voxel::{
     material::VoxelMaterial,
-    materials::{Bedrock, Rock, Water},
+    materials::{Bedrock, Rock},
     sdf,
     storage::VoxelBuffer,
     ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_LENGTH_U, CHUNK_HEIGHT,
@@ -26,12 +26,12 @@ pub fn terrain_carve_heightmap(
     heightmap: &Heightmap<CHUNK_LENGTH_U, CHUNK_LENGTH_U>,
 ) {
     // // drown the terrain under sea level.
-    if key.y <= 0 {
-        buffer.fill_extent(
-            Extent::from_min_and_shape(UVec3::ZERO, UVec3::new(CHUNK_LENGTH, 63, CHUNK_LENGTH)),
-            Water::into_voxel(),
-        );
-    }
+    // if key.y <= 0 {
+    //     buffer.fill_extent(
+    //         Extent::from_min_and_shape(UVec3::ZERO, UVec3::new(CHUNK_LENGTH, 63, CHUNK_LENGTH)),
+    //         Water::into_voxel(),
+    //     );
+    // }
 
     // carve the terrain.
     Extent::from_min_and_shape(UVec2::ZERO, UVec2::new(CHUNK_LENGTH, CHUNK_LENGTH))

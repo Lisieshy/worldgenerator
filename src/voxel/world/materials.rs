@@ -5,20 +5,20 @@ use crate::{
     voxel_material,
 };
 
-voxel_material!(Void, 0);
-voxel_material!(Dirt, 1);
-voxel_material!(Sand, 2);
-voxel_material!(Grass, 3);
-voxel_material!(Rock, 4);
-voxel_material!(Snow, 5);
-voxel_material!(Water, 6);
-voxel_material!(Sandstone, 7);
-voxel_material!(Bedrock, 8);
-voxel_material!(Cactus, 9);
-voxel_material!(Wood, 10);
-voxel_material!(Leaves, 11);
-voxel_material!(PineLeaves, 12);
-voxel_material!(PineWood, 13);
+voxel_material!(Void,           0);
+voxel_material!(Bedrock,        1);
+voxel_material!(Rock,           2);
+// voxel_material!(Dirt,           3);
+// voxel_material!(Sand,           4);
+// voxel_material!(Grass,          5);
+// voxel_material!(Snow,           6);
+// voxel_material!(Water,          7);
+// voxel_material!(Sandstone,      8);
+// voxel_material!(Cactus,         9);
+// voxel_material!(Wood,           10);
+// voxel_material!(Leaves,         11);
+// voxel_material!(PineLeaves,     12);
+// voxel_material!(PineWood,       13);
 
 pub struct VoxelWorldBaseMaterialsPlugin;
 
@@ -29,19 +29,28 @@ impl Plugin for VoxelWorldBaseMaterialsPlugin {
             .get_resource_mut::<VoxelMaterialRegistry>()
             .unwrap();
 
-        registry.register_material::<Void>(StandardMaterial {
-            base_color: Color::BLACK,
-            ..Default::default()
+        registry.register_material::<Void>(MaterialRegistryInfo {
+            name: Void::NAME,
+            material: StandardMaterial {
+                base_color: Color::BLACK,
+                ..Default::default()
+            },
         });
 
-        registry.register_material::<Rock>(StandardMaterial {
-            base_color: Color::GRAY,
-            ..Default::default()
+        registry.register_material::<Rock>(MaterialRegistryInfo {
+            name: Rock::NAME,
+            material: StandardMaterial {
+                base_color: Color::GRAY,
+                ..Default::default()
+            },
         });
 
-        registry.register_material::<Bedrock>(StandardMaterial {
-            base_color: Color::DARK_GRAY,
-            ..Default::default()
+        registry.register_material::<Bedrock>(MaterialRegistryInfo {
+            name: Bedrock::NAME,
+            material: StandardMaterial {
+                base_color: Color::DARK_GRAY,
+                ..Default::default()
+            },
         });
 
         // registry.register_material::<Void>(MaterialRegistryInfo {

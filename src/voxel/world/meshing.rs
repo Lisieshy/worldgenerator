@@ -23,14 +23,15 @@ use thread_local::ThreadLocal;
 pub fn prepare_chunks(
     chunks: Query<(Entity, &Chunk), Added<Chunk>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    // mut materials: ResMut<Assets<StandardMaterial>>,
+    material: Res<ChunkMaterialSingleton>,
     mut cmds: Commands,
-    textures: Res<MyAssets>,
-    asset_server: Res<AssetServer>,
+    // textures: Res<MyAssets>,
+    // asset_server: Res<AssetServer>,
 ) {
     // let uv_checkers: Handle<Image> = asset_server.load("textures/uv_checker.png");
 
-    // let texture = textures.get_mut(&uv_checkers).unwrap();
+    // let texture = textures.get_mut(&textures.uv_checkers).unwrap();
 
     // textures.uv_checkers;
 
@@ -40,14 +41,12 @@ pub fn prepare_chunks(
     //     ..Default::default()
     // });
 
+
     for (chunk, chunk_key) in chunks.iter() {
         let mut entity_commands = cmds.entity(chunk);
         entity_commands.insert((
             MaterialMeshBundle {
-                material: materials.add(StandardMaterial {
-                    base_color_texture: Some(textures.uv_checkers.clone()),
-                    ..Default::default()
-                }),
+                material: (**material).clone(),
                 mesh: meshes.add(Mesh::new(PrimitiveTopology::TriangleList)),
                 transform: Transform::from_translation(chunk_key.0.as_vec3() - Vec3::new(1.0, 1.0, 1.0)),
                 visibility: Visibility::Hidden,

@@ -9,6 +9,8 @@ use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG, Unit
 use ndcopy::copy3;
 use ndshape::{RuntimeShape, Shape};
 
+use super::VoxelTerrainMesh;
+
 const UV_SCALE: f32 = 1.0;
 
 /// Intermediate buffers for greedy meshing of voxel data which are reusable between frames to not allocate.
@@ -230,8 +232,16 @@ pub fn mesh_buffer<T, S>(
     let mut positions = Vec::with_capacity(num_vertices);
     let mut normals = Vec::with_capacity(num_vertices);
     let mut tex_coords = Vec::with_capacity(num_vertices);
+    let mut data = Vec::with_capacity(num_vertices);
 
-    for (group, face) in mesh_buffers.greedy_buffer.quads.groups.iter().zip(RIGHT_HANDED_Y_UP_CONFIG.faces.into_iter()) {
+    for (block_face_normal_index, (group, face)) in mesh_buffers
+        .greedy_buffer
+        .quads
+        .groups
+        .as_ref()
+        .iter()
+        .zip(RIGHT_HANDED_Y_UP_CONFIG.faces.into_iter())
+        .enumerate() {
         for quad in group.into_iter() {
             indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
             positions.extend_from_slice(&face.quad_mesh_positions(&quad, scale));
@@ -241,6 +251,12 @@ pub fn mesh_buffer<T, S>(
                 true,
                 &quad,
             ));
+            data.extend_from_slice(
+                &[(block_face_normal_index as u32) << 8u32
+                    | buffer
+                        .voxel_at(quad.minimum.map(|x| x - 1).into())
+                        .as_mat_id() as u32; 4],
+            );
         }
     }
 
@@ -253,6 +269,11 @@ pub fn mesh_buffer<T, S>(
     render_mesh.insert_attribute(
         Mesh::ATTRIBUTE_POSITION,
         VertexAttributeValues::Float32x3(positions),
+    );
+
+    render_mesh.insert_attribute(
+        VoxelTerrainMesh::ATTRIBUTE_DATA,
+        VertexAttributeValues::Uint32(data),
     );
 
     render_mesh.insert_attribute(

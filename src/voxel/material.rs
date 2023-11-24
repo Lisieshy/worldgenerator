@@ -14,12 +14,7 @@ use super::Voxel;
 #[derive(Default)]
 pub struct MaterialRegistryInfo {
     pub name: &'static str,
-    pub base_color: Color,
-    pub flags: VoxelMaterialFlags,
-    pub emissive: Color,
-    pub perceptual_roughness: f32,
-    pub metallic: f32,
-    pub reflectance: f32,
+    pub material: StandardMaterial,
 }
 
 /// Helper / marker trait for voxel materials.
@@ -63,22 +58,22 @@ impl Default for VoxelMaterialFlags {
 /// This stores the voxel materials along their material id used to refer them in voxel data
 #[derive(Resource)]
 pub struct VoxelMaterialRegistry {
-    materials: Vec<StandardMaterial>,
+    materials: Vec<MaterialRegistryInfo>,
     mat_ids: HashMap<TypeId, usize>,
 }
 
 #[allow(dead_code)]
 impl VoxelMaterialRegistry {
     #[inline]
-    pub fn get_by_id(&self, id: u8) -> Option<&StandardMaterial> {
+    pub fn get_by_id(&self, id: u8) -> Option<&MaterialRegistryInfo> {
         self.materials.get(id as usize)
     }
 
-    pub fn get_mut_by_id(&mut self, id: u8) -> Option<&mut StandardMaterial> {
+    pub fn get_mut_by_id(&mut self, id: u8) -> Option<&mut MaterialRegistryInfo> {
         self.materials.get_mut(id as usize)
     }
 
-    pub fn get_by_type<M: 'static>(&self) -> Option<&StandardMaterial> {
+    pub fn get_by_type<M: 'static>(&self) -> Option<&MaterialRegistryInfo> {
         self.mat_ids
             .get(&TypeId::of::<M>())
             .map(|x| self.materials.get(*x).unwrap())
@@ -88,7 +83,7 @@ impl VoxelMaterialRegistry {
         self.mat_ids.get(&TypeId::of::<M>()).map(|x| *x as u8)
     }
 
-    pub fn register_material<M: 'static>(&mut self, mat: StandardMaterial) {
+    pub fn register_material<M: 'static>(&mut self, mat: MaterialRegistryInfo) {
         self.materials.push(mat);
         info!(
             "Registered material {:?} (ID: {})",
@@ -98,7 +93,7 @@ impl VoxelMaterialRegistry {
         self.mat_ids.insert(TypeId::of::<M>(), self.materials.len());
     }
 
-    pub fn iter_mats(&self) -> impl Iterator<Item = &StandardMaterial> {
+    pub fn iter_mats(&self) -> impl Iterator<Item = &MaterialRegistryInfo> {
         self.materials.iter()
     }
 }

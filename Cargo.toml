@@ -26,6 +26,7 @@ bevy_atmosphere = "0.8.0"
 bevy_egui = "0.23.0"
 bevy_mod_raycast = "0.16.0"
 bevy_vector_shapes = "0.6.0"
+arrayvec = "0.7.4"
 directories = "5.0.1"
 bincode = "1.3.3"
 serde = { version = "1.0", features = ["derive"] }
