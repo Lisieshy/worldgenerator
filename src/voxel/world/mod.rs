@@ -49,7 +49,7 @@ impl Plugin for VoxelWorldPlugin {
             .add_plugins(chunks_anim::ChunkAppearanceAnimatorPlugin)
             .add_plugins(bevy_atmosphere::plugin::AtmospherePlugin)
             .add_plugins(player::VoxelWorldPlayerControllerPlugin)
-            .add_plugins(sky::InteractiveSkyboxPlugin);
+            .add_plugins(sky::VoxelWorldSkyboxPlugin);
     }
 }
 

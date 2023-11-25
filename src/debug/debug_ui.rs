@@ -220,6 +220,9 @@ fn display_world_info(
         ui.label(format!("Erosion : {}", erosion.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
         ui.label(format!("Peaks&Valleys : {}", peaks_valleys.getf([pos_in_chunk.x as u32, pos_in_chunk.z as u32])));
         // ui.label(format!("Current biome : {}", biome.name()));
+        ui.separator();
+        ui.heading("Lighting info");
+        // ui.label(format!("Time of day: {}", sky_light_entity.));
     });
 
     // draw_chunk_borders(shapes, player_pos.chunk_min);

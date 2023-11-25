@@ -88,6 +88,7 @@ fn setup(
     settings: Res<PlayerSettings>,
     mut cmds: Commands
 ) {
+    // basically useless here for now, might be useful when a world selection screen/menus are added.
     if let Some(base_dirs) = BaseDirs::new() {
         let data_dir = base_dirs.data_dir().join(".yavafg"); // yet another voxel and fantasy game, root folder
         info!("root data directory: {}", data_dir.display());
@@ -102,8 +103,6 @@ fn setup(
         panic!("No valid directory path could be retrieved from the operating system.");
     }
 
-    // let uv_checkers: Handle<Image> = asset_server.load("textures/uv_checker.png");
-    // cmds.insert_resource(uv_checkers);
 
     cmds.spawn(Camera3dBundle {
         projection: bevy::prelude::Projection::Perspective(PerspectiveProjection {
@@ -115,6 +114,10 @@ fn setup(
             order: 1,
             ..default()
         },
+        // todo: Serialize player data to file and load it before spawning everything.
+        // will most likely need a complete rewrite of the app startup process because
+        // it will inevitably lead to the creation of some kind of main menu and world
+        // selection screen.
         transform: Transform::from_xyz(2.0, 180.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     })
