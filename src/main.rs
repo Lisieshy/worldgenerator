@@ -133,8 +133,8 @@ fn setup(
 
 #[derive(AssetCollection, Resource)]
 struct MyAssets {
-    #[asset(path = "textures/uv_checker.png")]
-    uv_checkers: Handle<Image>,
+    #[asset(path = "textures/tiles", collection(typed))]
+    tiles: Vec<Handle<Image>>,
 
     #[asset(path = "textures/crosshair.png")]
     crosshair: Handle<Image>,

@@ -85,7 +85,7 @@ fn setup_environment(
 fn daylight_cycle(
     mut atmosphere: AtmosphereMut<Nishita>,
     mut query: Query<(&mut Transform, &mut DirectionalLight), With<Sun>>,
-    mut timer: ResMut<CycleTimer>,
+    mut timer: ResMut<DaylightCycleTimer>,
     time: Res<Time>,
 ) {
     timer.0.tick(time.delta());
@@ -105,7 +105,7 @@ fn daylight_cycle(
 struct Sun;
 
 #[derive(Resource)]
-struct CycleTimer(Timer);
+struct DaylightCycleTimer(Timer);
 
 
 pub struct VoxelWorldSkyboxPlugin;
@@ -114,7 +114,7 @@ impl Plugin for VoxelWorldSkyboxPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app
             .insert_resource(AtmosphereModel::default())
-            .insert_resource(CycleTimer(Timer::new(
+            .insert_resource(DaylightCycleTimer(Timer::new(
                 bevy::utils::Duration::from_millis(50),
                 TimerMode::Repeating,
             )))

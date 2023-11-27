@@ -6,7 +6,7 @@ use super::{
     Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT, WorldSettings,
 };
 use crate::{voxel::{
-    render::{mesh_buffer, ChunkMaterialSingleton, MeshBuffers},
+    render::{mesh_buffer, MeshBuffers, GpuTerrainMaterial, ChunkMaterialSingleton},
     storage::ChunkMap,
 }, AppState, MyAssets};
 use bevy::{
@@ -23,25 +23,12 @@ use thread_local::ThreadLocal;
 pub fn prepare_chunks(
     chunks: Query<(Entity, &Chunk), Added<Chunk>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    // mut materials: ResMut<Assets<StandardMaterial>>,
+    // mut materials: ResMut<Assets<GpuTerrainMaterial>>,
     material: Res<ChunkMaterialSingleton>,
     mut cmds: Commands,
-    // textures: Res<MyAssets>,
+    // assets: Res<MyAssets>,
     // asset_server: Res<AssetServer>,
 ) {
-    // let uv_checkers: Handle<Image> = asset_server.load("textures/uv_checker.png");
-
-    // let texture = textures.get_mut(&textures.uv_checkers).unwrap();
-
-    // textures.uv_checkers;
-
-    // texture.sampler = bevy::render::texture::ImageSampler::Descriptor(ImageSamplerDescriptor {
-    //     address_mode_u: bevy::render::texture::ImageAddressMode::Repeat,
-    //     address_mode_v: bevy::render::texture::ImageAddressMode::Repeat,
-    //     ..Default::default()
-    // });
-
-
     for (chunk, chunk_key) in chunks.iter() {
         let mut entity_commands = cmds.entity(chunk);
         entity_commands.insert((
