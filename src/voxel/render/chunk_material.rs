@@ -7,13 +7,16 @@ use bevy::{
         extract_component::ExtractComponent,
         mesh::MeshVertexAttribute, renderer::RenderDevice, render_asset::RenderAssets,
         render_resource::*,
-        texture::FallbackImage, RenderApp, render_graph::SlotValue,
+        texture::FallbackImage, RenderApp,
     },
+    // core::{Zeroable, Pod},
 };
 
-use crate::{MyAssets, AppState, voxel::material::VoxelMaterialRegistry};
+use bytemuck::{Pod, Zeroable};
 
-const MAX_TEXTURE_COUNT: usize = 4;
+use crate::{MyAssets, AppState, voxel::material::VoxelMaterialRegistry, BlockTextures};
+
+const MAX_TEXTURE_COUNT: usize = 14;
 
 #[derive(Component, Clone, Default, ExtractComponent)]
 /// A marker component for voxel meshes.
@@ -24,11 +27,12 @@ impl VoxelTerrainMesh {
         MeshVertexAttribute::new("Vertex_Data", 69696969, VertexFormat::Uint32);
 }
 
-#[derive(ShaderType, Clone, Copy, Debug, Default)]
+#[derive(ShaderType, Clone, Copy, Debug, Default, Pod, Zeroable)]
+#[repr(C)]
 pub struct GpuVoxelMaterial {
-    base_color: Color,
+    // base_color: Color,
+    // emissive: Color,
     flags: u32,
-    emissive: Color,
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
@@ -108,16 +112,43 @@ impl AsBindGroup for GpuTerrainMaterial {
             textures[id] = &*image.texture_view;
         }
 
-        let mut materials: Vec<_> = self.materials.iter().collect();
+        let mut voxel_mats = vec![GpuVoxelMaterial::default(); MAX_TEXTURE_COUNT];
+        for mat in self.materials.iter().take(MAX_TEXTURE_COUNT) {
+            voxel_mats.push(*mat);
+        };
 
         let bind_group = render_device.create_bind_group(
             "gpu_terrain_material_bind_group",
             layout,
-            &BindGroupEntries::with_indices((
-                (0, &textures[..]),
-                (1, &fallback_image.sampler),
-                (2, &materials[..])
-            )),
+            &[
+                BindGroupEntry {
+                    binding: 0,
+                    resource: BindingResource::TextureViewArray(&textures[..]),
+                },
+                BindGroupEntry {
+                    binding: 1,
+                    resource: BindingResource::Sampler(&fallback_image.sampler),
+                },
+                BindGroupEntry {
+                    binding: 2,
+                    resource: BindingResource::Buffer(BufferBinding {
+                        buffer: &render_device.create_buffer_with_data(&BufferInitDescriptor {
+                            label: "gpu_terrain_material_buffer".into(),
+                            usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
+                            contents: bytemuck::cast_slice(&voxel_mats),
+                        }),
+                        offset: 0,
+                        size: NonZeroU64::new(
+                            u64::from(GpuVoxelMaterial::SHADER_SIZE) * MAX_TEXTURE_COUNT as u64,
+                        ),
+                    }),
+                },
+            ],
+            // &BindGroupEntries::with_indices((
+            //     (0, &textures[..]),
+            //     (1, &fallback_image.sampler),
+            //     // (2, &materials[..])
+            // )),
         );
 
         Ok(PreparedBindGroup {
@@ -159,6 +190,7 @@ impl AsBindGroup for GpuTerrainMaterial {
                 ty: BindingType::Sampler(SamplerBindingType::Filtering),
                 count: None,
             },
+            // @group(1) @binding(2) var materials: array<GpuVoxelMaterial, MAX_TEXTURE_SIZE>
             BindGroupLayoutEntry {
                 binding: 2,
                 visibility: ShaderStages::FRAGMENT,
@@ -179,12 +211,11 @@ fn update_chunk_material_singleton(
     chunk_material: ResMut<ChunkMaterialSingleton>,
     voxel_materials: Res<VoxelMaterialRegistry>,
     mut chunk_entities: Query<(Entity, &mut Handle<GpuTerrainMaterial>)>,
-    assets: Res<MyAssets>,
+    block_assets: Res<BlockTextures>,
 ) {
     if chunk_material.is_changed() {
         let mut gpu_mats = GpuTerrainMaterial {
             materials: [GpuVoxelMaterial {
-                base_color: Color::WHITE,
                 flags: 0,
                 ..Default::default()
             }; 256],
@@ -196,17 +227,32 @@ fn update_chunk_material_singleton(
             .iter_mats()
             .enumerate()
             .for_each(|(index, material)| {
-                gpu_mats.materials[index].base_color = material.base_color;
+                // gpu_mats.materials[index].base_color = material.base_color;
                 gpu_mats.materials[index].flags = material.flags.bits();
-                gpu_mats.materials[index].emissive = material.emissive;
+                // gpu_mats.materials[index].emissive = material.emissive;
                 gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
                 gpu_mats.materials[index].metallic = material.metallic;
                 gpu_mats.materials[index].reflectance = material.reflectance;
             });
 
-        for (_, texture) in assets.tiles.iter().enumerate() {
-            gpu_mats.textures.push(texture.clone());
-        }
+        // for (_, texture) in assets.tiles.iter().enumerate() {
+        //     gpu_mats.textures.push(texture.clone());
+        // }
+
+        gpu_mats.textures.push(block_assets.void.clone());
+        gpu_mats.textures.push(block_assets.bedrock.clone());
+        gpu_mats.textures.push(block_assets.rock.clone());
+        gpu_mats.textures.push(block_assets.dirt.clone());
+        gpu_mats.textures.push(block_assets.sand.clone());
+        gpu_mats.textures.push(block_assets.grass.clone());
+        gpu_mats.textures.push(block_assets.snow.clone());
+        gpu_mats.textures.push(block_assets.water.clone());
+        gpu_mats.textures.push(block_assets.sandstone.clone());
+        gpu_mats.textures.push(block_assets.cactus.clone());
+        gpu_mats.textures.push(block_assets.wood.clone());
+        gpu_mats.textures.push(block_assets.leaves.clone());
+        gpu_mats.textures.push(block_assets.pineleaves.clone());
+        gpu_mats.textures.push(block_assets.pinewood.clone());
 
         let chunk_material = materials.add(gpu_mats);
         commands.insert_resource(ChunkMaterialSingleton(chunk_material.clone()));
@@ -225,7 +271,7 @@ impl FromWorld for ChunkMaterialSingleton {
         let mut materials = world.resource_mut::<Assets<GpuTerrainMaterial>>();
         Self(materials.add(GpuTerrainMaterial {
             materials: [GpuVoxelMaterial {
-                base_color: Color::WHITE,
+                // base_color: Color::WHITE,
                 flags: 0,
                 ..Default::default()
             }; 256],
