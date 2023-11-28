@@ -16,9 +16,25 @@
 
 #import "shaders/voxel_data.wgsl"::{voxel_data_extract_normal, voxel_data_extract_material_index}
 // #import "shaders/terrain_uniforms.wgsl"::{VoxelMat, voxel_materials, color_texture, color_sampler, TERRAIN_CHUNK_LENGTH}
-#import "shaders/terrain_uniforms.wgsl"::{VoxelMat, textures, nearest_sampler, TERRAIN_CHUNK_LENGTH}
+// #import "shaders/terrain_uniforms.wgsl"::{VoxelMat, textures, nearest_sampler, TERRAIN_CHUNK_LENGTH}
 #import "shaders/noise.wgsl"::hash
 #import "shaders/fog.wgsl"::ffog_apply_fog
+
+const VOXEL_MAT_FLAG_LIQUID: u32 = 2u; // 1 << 1
+const TERRAIN_CHUNK_LENGTH: u32 = 32u;
+
+struct VoxelMat {
+    base_color: vec4<f32>,
+    flags: u32,
+    emissive: vec4<f32>,
+    perceptual_roughness: f32,
+    metallic: f32,
+    reflectance: f32,
+};
+
+
+@group(1) @binding(0) var textures: binding_array<texture_2d<f32>>;
+@group(1) @binding(1) var nearest_sampler: sampler;
 
 struct Vertex {
     @builtin(instance_index) instance_index: u32,
@@ -43,9 +59,7 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     let world_position = bevy_pbr::mesh_functions::mesh_position_local_to_world(model, vec4<f32>(vertex.position, 1.0));
 
     var out: VertexOutput;
-    // let voxel_normal = voxel_data_extract_normal(vertex.voxel_data);
     out.clip_position = view_transformations::position_world_to_clip(world_position.xyz);
-    // out.voxel_normal = voxel_normal;
     out.normal = vertex.normal;
     out.voxel_data = vertex.voxel_data;
     out.world_position = world_position.xyz;
@@ -109,7 +123,7 @@ fn fragment(in: Fragment) -> @location(0) vec4<f32> {
     let coords = clamp(vec2<u32>(in.uv), vec2<u32>(0u), vec2<u32>(0u));
     let index = coords.x;
     let inner_uv = fract(in.uv);
-    return textureSample(textures[index], nearest_sampler, inner_uv);
+    return textureSample(textures[2], nearest_sampler, inner_uv);
 
     // return vec4f(in.uv.x, in.uv.y, 1.0, 1.0);
 

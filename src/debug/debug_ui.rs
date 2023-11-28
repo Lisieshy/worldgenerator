@@ -401,7 +401,7 @@ impl Plugin for DebugUIPlugins {
                 display_mat_debug: true,
                 selected_mat: Rock::into_voxel().0,
                 window_mode: WindowMode::Windowed,
-                use_vsync: false,
+                use_vsync: true,
             });
     }
 }

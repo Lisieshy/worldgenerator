@@ -1,4 +1,4 @@
-use std::{process::exit, num::NonZeroU32};
+use std::{process::exit, num::{NonZeroU32, NonZeroU64}};
 
 use bevy::{
     prelude::*,
@@ -7,13 +7,13 @@ use bevy::{
         extract_component::ExtractComponent,
         mesh::MeshVertexAttribute, renderer::RenderDevice, render_asset::RenderAssets,
         render_resource::*,
-        texture::FallbackImage, RenderApp,
+        texture::FallbackImage, RenderApp, render_graph::SlotValue,
     },
 };
 
 use crate::{MyAssets, AppState, voxel::material::VoxelMaterialRegistry};
 
-const MAX_TEXTURE_COUNT: usize = 2;
+const MAX_TEXTURE_COUNT: usize = 4;
 
 #[derive(Component, Clone, Default, ExtractComponent)]
 /// A marker component for voxel meshes.
@@ -32,7 +32,6 @@ pub struct GpuVoxelMaterial {
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
-    // alpha: f32,
 }
 
 #[derive(Asset, TypePath, Debug, Clone)]
@@ -109,12 +108,16 @@ impl AsBindGroup for GpuTerrainMaterial {
             textures[id] = &*image.texture_view;
         }
 
-        let mut materials: Vec<_> = self.materials.iter().map(|mat| *mat).collect();
+        let mut materials: Vec<_> = self.materials.iter().collect();
 
         let bind_group = render_device.create_bind_group(
             "gpu_terrain_material_bind_group",
             layout,
-            &BindGroupEntries::sequential((&textures[..], &fallback_image.sampler)),
+            &BindGroupEntries::with_indices((
+                (0, &textures[..]),
+                (1, &fallback_image.sampler),
+                (2, &materials[..])
+            )),
         );
 
         Ok(PreparedBindGroup {
@@ -154,6 +157,16 @@ impl AsBindGroup for GpuTerrainMaterial {
                 binding: 1,
                 visibility: ShaderStages::FRAGMENT,
                 ty: BindingType::Sampler(SamplerBindingType::Filtering),
+                count: None,
+            },
+            BindGroupLayoutEntry {
+                binding: 2,
+                visibility: ShaderStages::FRAGMENT,
+                ty: BindingType::Buffer {
+                    ty: BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
                 count: None,
             },
         ]
