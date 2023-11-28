@@ -40,19 +40,19 @@ pub struct GpuTerrainMaterial {
     // #[uniform(0)]
     // pub render_distance: u32,
     // #[uniform(0)]
-    // pub materials: [GpuVoxelMaterial; 256],
+    pub materials: [GpuVoxelMaterial; 256],
     pub textures: Vec<Handle<Image>>,
 }
 
-impl Default for GpuTerrainMaterial {
-    fn default() -> Self {
-        Self {
-            // render_distance: 16,
-            // materials: [default(); 256],
-            textures: vec![],
-        }
-    }
-}
+// impl Default for GpuTerrainMaterial {
+//     fn default() -> Self {
+//         Self {
+//             // render_distance: 16,
+//             // materials: [default(); 256],
+//             textures: vec![],
+//         }
+//     }
+// }
 
 impl Material for GpuTerrainMaterial {
     fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
@@ -90,6 +90,7 @@ impl AsBindGroup for GpuTerrainMaterial {
             image_assets: &RenderAssets<Image>,
             fallback_image: &FallbackImage,
         ) -> Result<PreparedBindGroup<Self::Data>, AsBindGroupError> {
+
         let mut images = vec![];
         for handle in self.textures.iter().take(MAX_TEXTURE_COUNT) {
             match image_assets.get(handle) {
@@ -108,8 +109,10 @@ impl AsBindGroup for GpuTerrainMaterial {
             textures[id] = &*image.texture_view;
         }
 
+        let mut materials: Vec<_> = self.materials.iter().map(|mat| *mat).collect();
+
         let bind_group = render_device.create_bind_group(
-            "voxel_terrain_material_textures_bind_group",
+            "gpu_terrain_material_bind_group",
             layout,
             &BindGroupEntries::sequential((&textures[..], &fallback_image.sampler)),
         );
@@ -161,32 +164,32 @@ fn update_chunk_material_singleton(
     mut commands: Commands,
     mut materials: ResMut<Assets<GpuTerrainMaterial>>,
     chunk_material: ResMut<ChunkMaterialSingleton>,
-    // voxel_materials: Res<VoxelMaterialRegistry>,
+    voxel_materials: Res<VoxelMaterialRegistry>,
     mut chunk_entities: Query<(Entity, &mut Handle<GpuTerrainMaterial>)>,
     assets: Res<MyAssets>,
 ) {
     if chunk_material.is_changed() {
         let mut gpu_mats = GpuTerrainMaterial {
-            // materials: [GpuVoxelMaterial {
-            //     base_color: Color::WHITE,
-            //     flags: 0,
-            //     ..Default::default()
-            // }; 256],
+            materials: [GpuVoxelMaterial {
+                base_color: Color::WHITE,
+                flags: 0,
+                ..Default::default()
+            }; 256],
             // render_distance: 32,
             textures: vec![],
         };
 
-        // voxel_materials
-        //     .iter_mats()
-        //     .enumerate()
-        //     .for_each(|(index, material)| {
-        //         gpu_mats.materials[index].base_color = material.base_color;
-        //         gpu_mats.materials[index].flags = material.flags.bits();
-        //         gpu_mats.materials[index].emissive = material.emissive;
-        //         gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
-        //         gpu_mats.materials[index].metallic = material.metallic;
-        //         gpu_mats.materials[index].reflectance = material.reflectance;
-        //     });
+        voxel_materials
+            .iter_mats()
+            .enumerate()
+            .for_each(|(index, material)| {
+                gpu_mats.materials[index].base_color = material.base_color;
+                gpu_mats.materials[index].flags = material.flags.bits();
+                gpu_mats.materials[index].emissive = material.emissive;
+                gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
+                gpu_mats.materials[index].metallic = material.metallic;
+                gpu_mats.materials[index].reflectance = material.reflectance;
+            });
 
         for (_, texture) in assets.tiles.iter().enumerate() {
             gpu_mats.textures.push(texture.clone());
@@ -207,7 +210,14 @@ pub struct ChunkMaterialSingleton(Handle<GpuTerrainMaterial>);
 impl FromWorld for ChunkMaterialSingleton {
     fn from_world(world: &mut World) -> Self {
         let mut materials = world.resource_mut::<Assets<GpuTerrainMaterial>>();
-        Self(materials.add(GpuTerrainMaterial::default()))
+        Self(materials.add(GpuTerrainMaterial {
+            materials: [GpuVoxelMaterial {
+                base_color: Color::WHITE,
+                flags: 0,
+                ..Default::default()
+            }; 256],
+            textures: vec![],
+        }))
     }
 }
 

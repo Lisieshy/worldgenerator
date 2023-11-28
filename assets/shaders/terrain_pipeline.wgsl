@@ -106,9 +106,9 @@ fn fragment(in: Fragment) -> @location(0) vec4<f32> {
 
     // return pbr_colour;
 
-    let coords = clamp(vec2<u32>(in.uv * 4.0), vec2<u32>(0u), vec2<u32>(3u));
-    let index = coords.y * 4u + coords.x;
-    let inner_uv = fract(in.uv * 4.0);
+    let coords = clamp(vec2<u32>(in.uv), vec2<u32>(0u), vec2<u32>(0u));
+    let index = coords.x;
+    let inner_uv = fract(in.uv);
     return textureSample(textures[index], nearest_sampler, inner_uv);
 
     // return vec4f(in.uv.x, in.uv.y, 1.0, 1.0);

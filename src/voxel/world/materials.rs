@@ -1,10 +1,13 @@
-use bevy::{prelude::{Color, Plugin}, pbr::StandardMaterial};
+use bevy::prelude::{Color, Plugin};
 
 use crate::{
     voxel::material::{MaterialRegistryInfo, VoxelMaterialFlags, VoxelMaterialRegistry},
     voxel_material,
 };
 
+
+// Order of IDs is important, it must match the order in which the materials are registered, even though it technically shouldn't.
+// Need to change this a bit anyways in the future.
 voxel_material!(Void,           0);
 voxel_material!(Bedrock,        1);
 voxel_material!(Rock,           2);
