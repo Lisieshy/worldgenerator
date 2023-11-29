@@ -1,11 +1,11 @@
 use std::marker::PhantomData;
 
-use crate::voxel::{storage::VoxelBuffer, MaterialVoxel};
+use crate::voxel::{storage::VoxelBuffer, MaterialVoxel, CHUNK_HEIGHT};
 use bevy::{
     prelude::Mesh,
-    render::mesh::{Indices, VertexAttributeValues}, log::info,
+    render::mesh::{Indices, VertexAttributeValues},
 };
-use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG, UnitQuadBuffer, visible_block_faces};
+use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG, ilattice::{extent::Extent, glam::UVec2}};
 use ndcopy::copy3;
 use ndshape::{RuntimeShape, Shape};
 
@@ -65,6 +65,13 @@ pub fn mesh_buffer<T, S>(
         &dst_shape,
         [1; 3],
     );
+
+    // Extent::from_min_and_max(UVec2::ZERO, UVec2::splat(mesh_buffers.scratch_buffer.shape().size()))
+    // .iter2()
+    // .for_each(|pos| {
+    //     *mesh_buffers.scratch_buffer.voxel_at_mut([pos.x, 0, pos.y].into()) = T::default();
+    //     *mesh_buffers.scratch_buffer.voxel_at_mut([pos.x, CHUNK_HEIGHT, pos.y].into()) = T::default();
+    // });
 
     greedy_quads(
         mesh_buffers.scratch_buffer.slice(),

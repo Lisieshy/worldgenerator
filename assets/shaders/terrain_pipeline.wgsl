@@ -22,12 +22,12 @@
 
 const VOXEL_MAT_FLAG_LIQUID: u32 = 2u; // 1 << 1
 const TERRAIN_CHUNK_LENGTH: u32 = 32u;
-const MAX_TEXTURE_COUNT: u32 = 14u;
+const MAX_TEXTURE_COUNT: u32 = 15u;
 
 struct VoxelMat {
-    // base_color: vec4<f32>,
+    base_color: vec4<f32>,
     flags: u32,
-    // emissive: vec4<f32>,
+    emissive: vec4<f32>,
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
@@ -103,11 +103,13 @@ fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, voxel_index: u32, frag:
     let inner_uv = fract(frag.uv);
     var base_color: vec4<f32> = textureSample(textures[voxel_index], nearest_sampler, inner_uv);
 
+    base_color = base_color + voxel_mat.base_color;
+
 
     var pbr_input: PbrInput = pbr_input_new();
     pbr_input.material.metallic = voxel_mat.metallic;
     pbr_input.material.perceptual_roughness = voxel_mat.perceptual_roughness;
-    // pbr_input.material.emissive = voxel_mat.emissive;
+    pbr_input.material.emissive = voxel_mat.emissive;
     pbr_input.material.reflectance = voxel_mat.reflectance;
     pbr_input.material.base_color = base_color;
 
@@ -131,9 +133,9 @@ fn fragment(in: Fragment) -> @location(0) vec4<f32> {
 
     /// PBR lighting input data preparation
     var pbr_input = prepare_pbr_input_from_voxel_mat(voxel_mat, voxel_index, in);
-    let pbr_colour = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
+    let pbr_color = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
 
-    return pbr_colour;
+    return pbr_color;
 
     // return vec4f(in.uv.x, in.uv.y, 1.0, 1.0);
 

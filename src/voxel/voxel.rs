@@ -1,6 +1,8 @@
 use block_mesh::{MergeVoxel, Voxel as MeshableVoxel};
 use serde::{Serialize, Deserialize};
 
+use super::{materials::Air, material::VoxelMaterial};
+
 #[derive(Clone, Copy, Hash, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Voxel(pub u16);
 
@@ -18,8 +20,11 @@ impl MeshableVoxel for Voxel {
     #[inline]
     fn get_visibility(&self) -> block_mesh::VoxelVisibility {
         match *self {
+            // Switch the EMPTY_VOXEL to Opaque to hide chunk borders.
+            // Will be useful later when chunk meshing will be handled better.
             Self::EMPTY_VOXEL => block_mesh::VoxelVisibility::Empty,
-            Voxel(6) => block_mesh::VoxelVisibility::Translucent, // Water Voxel type has ID 6.
+            Voxel(1) => block_mesh::VoxelVisibility::Empty, // Air Voxel type has ID 1.
+            Voxel(8) => block_mesh::VoxelVisibility::Translucent, // Water Voxel type has ID 6.
             _ => block_mesh::VoxelVisibility::Opaque,
         }
     }

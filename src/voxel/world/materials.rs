@@ -1,4 +1,4 @@
-use bevy::prelude::{Color, Plugin};
+use bevy::{prelude::{Color, Plugin}, math::Vec3};
 
 use crate::{
     voxel::material::{MaterialRegistryInfo, VoxelMaterialFlags, VoxelMaterialRegistry},
@@ -9,19 +9,20 @@ use crate::{
 // Order of IDs is important, it must match the order in which the materials are registered, even though it technically shouldn't.
 // Need to change this a bit anyways in the future.
 voxel_material!(Void,           0);
-voxel_material!(Bedrock,        1);
-voxel_material!(Rock,           2);
-voxel_material!(Dirt,           3);
-voxel_material!(Sand,           4);
-voxel_material!(Grass,          5);
-voxel_material!(Snow,           6);
-voxel_material!(Water,          7);
-voxel_material!(Sandstone,      8);
-voxel_material!(Cactus,         9);
-voxel_material!(Wood,           10);
-voxel_material!(Leaves,         11);
-voxel_material!(PineLeaves,     12);
-voxel_material!(PineWood,       13);
+voxel_material!(Air,            1);
+voxel_material!(Bedrock,        2);
+voxel_material!(Rock,           3);
+voxel_material!(Dirt,           4);
+voxel_material!(Sand,           5);
+voxel_material!(Grass,          6);
+voxel_material!(Snow,           7);
+voxel_material!(Water,          8);
+voxel_material!(Sandstone,      9);
+voxel_material!(Cactus,         10);
+voxel_material!(Wood,           11);
+voxel_material!(Leaves,         12);
+voxel_material!(PineLeaves,     13);
+voxel_material!(PineWood,       14);
 
 pub struct VoxelWorldBaseMaterialsPlugin;
 
@@ -32,58 +33,69 @@ impl Plugin for VoxelWorldBaseMaterialsPlugin {
             .get_resource_mut::<VoxelMaterialRegistry>()
             .unwrap();
 
+        let color_to_vec3 = |color: Color| -> Vec3 {
+            Vec3::new(color.r(), color.g(), color.b())
+        };
+
         registry.register_material::<Void>(MaterialRegistryInfo {
-            // base_color: Color::BLACK,
+            base_color: color_to_vec3(Color::BLACK),
             name: "Void",
             flags: VoxelMaterialFlags::SOLID,
             ..Default::default()
         });
+        
+        registry.register_material::<Air>(MaterialRegistryInfo {
+            base_color: color_to_vec3(Color::BLACK),
+            name: "Air",
+            flags: VoxelMaterialFlags::UNBREAKABLE,
+            ..Default::default()
+        });
 
         registry.register_material::<Bedrock>(MaterialRegistryInfo {
-            // base_color: Color::DARK_GRAY,
+            base_color: color_to_vec3(Color::DARK_GRAY),
             name: Bedrock::NAME,
             flags: VoxelMaterialFlags::UNBREAKABLE,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.9,
             metallic: 1.0,
             ..Default::default()
         });
 
         registry.register_material::<Rock>(MaterialRegistryInfo {
-            // base_color: Color::GRAY,
+            base_color: color_to_vec3(Color::GRAY),
             name: Rock::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.85,
             metallic: 0.6,
             ..Default::default()
         });
 
         registry.register_material::<Dirt>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(112, 97, 92),
+            base_color: color_to_vec3(Color::rgb_u8(112, 97, 92)),
             name: Dirt::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.75,
             reflectance: 0.45,
             ..Default::default()
         });
 
         registry.register_material::<Sand>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(228, 219, 148),
+            base_color: color_to_vec3(Color::rgb_u8(228, 219, 148)),
             name: Sand::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.8,
             reflectance: 1.0,
             ..Default::default()
         });
 
         registry.register_material::<Grass>(MaterialRegistryInfo {
-            // base_color: Color::LIME_GREEN,
+            base_color: color_to_vec3(Color::LIME_GREEN),
             name: Grass::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.66,
             reflectance: 0.3,
             ..Default::default()
@@ -91,74 +103,74 @@ impl Plugin for VoxelWorldBaseMaterialsPlugin {
 
 
         registry.register_material::<Snow>(MaterialRegistryInfo {
-            // base_color: Color::WHITE,
+            base_color: color_to_vec3(Color::WHITE),
             name: Snow::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             ..Default::default()
         });
 
         registry.register_material::<Water>(MaterialRegistryInfo {
-            // base_color: *Color::rgb_u8(78, 167, 215).set_a(0.3),
+            base_color: color_to_vec3(Color::rgb_u8(78, 167, 215)), // alpha was 0.3
             name: Water::NAME,
             flags: VoxelMaterialFlags::LIQUID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.2,
             metallic: 0.47,
             ..Default::default()
         });
 
         registry.register_material::<Sandstone>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(198, 192, 144),
+            base_color: color_to_vec3(Color::rgb_u8(198, 192, 144)),
             name: Sandstone::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             ..Default::default()
         });
 
         registry.register_material::<Cactus>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(0, 96, 0),
+            base_color: color_to_vec3(Color::rgb_u8(0, 96, 0)),
             name: Cactus::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             ..Default::default()
         });
 
         registry.register_material::<Wood>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(188, 147, 97),
+            base_color: color_to_vec3(Color::rgb_u8(188, 147, 97)),
             name: Wood::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.7,
             metallic: 0.46,
             ..Default::default()
         });
 
         registry.register_material::<Leaves>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(109, 177, 56),
+            base_color: color_to_vec3(Color::rgb_u8(109, 177, 56)),
             name: Leaves::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.73,
             metallic: 1.0,
             ..Default::default()
         });
 
         registry.register_material::<PineLeaves>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(135, 201, 167),
+            base_color: color_to_vec3(Color::rgb_u8(135, 201, 167)),
             name: PineLeaves::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.73,
             metallic: 1.0,
             ..Default::default()
         });
 
         registry.register_material::<PineWood>(MaterialRegistryInfo {
-            // base_color: Color::rgb_u8(174, 155, 126),
+            base_color: color_to_vec3(Color::rgb_u8(174, 155, 126)),
             name: PineWood::NAME,
             flags: VoxelMaterialFlags::SOLID,
-            // emissive: Color::BLACK,
+            emissive: color_to_vec3(Color::BLACK),
             perceptual_roughness: 0.7,
             metallic: 0.46,
             ..Default::default()

@@ -16,7 +16,7 @@ use bytemuck::{Pod, Zeroable};
 
 use crate::{MyAssets, AppState, voxel::material::VoxelMaterialRegistry, BlockTextures};
 
-const MAX_TEXTURE_COUNT: usize = 14;
+const MAX_TEXTURE_COUNT: usize = 15;
 
 #[derive(Component, Clone, Default, ExtractComponent)]
 /// A marker component for voxel meshes.
@@ -30,8 +30,8 @@ impl VoxelTerrainMesh {
 #[derive(ShaderType, Clone, Copy, Debug, Default, Pod, Zeroable)]
 #[repr(C)]
 pub struct GpuVoxelMaterial {
-    // base_color: Color,
-    // emissive: Color,
+    base_color: Vec3,
+    emissive: Vec3,
     flags: u32,
     perceptual_roughness: f32,
     metallic: f32,
@@ -217,19 +217,17 @@ fn update_chunk_material_singleton(
             .iter_mats()
             .enumerate()
             .for_each(|(index, material)| {
-                // gpu_mats.materials[index].base_color = material.base_color;
+                gpu_mats.materials[index].base_color = material.base_color;
                 gpu_mats.materials[index].flags = material.flags.bits();
-                // gpu_mats.materials[index].emissive = material.emissive;
+                gpu_mats.materials[index].emissive = material.emissive;
                 gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
                 gpu_mats.materials[index].metallic = material.metallic;
                 gpu_mats.materials[index].reflectance = material.reflectance;
             });
 
-        // for (_, texture) in assets.tiles.iter().enumerate() {
-        //     gpu_mats.textures.push(texture.clone());
-        // }
-
+        // @todo: maybe find a better way to handle textures
         gpu_mats.textures.push(block_assets.void.clone());
+        gpu_mats.textures.push(block_assets.void.clone()); // air but since it's also empty it's void.
         gpu_mats.textures.push(block_assets.bedrock.clone());
         gpu_mats.textures.push(block_assets.rock.clone());
         gpu_mats.textures.push(block_assets.dirt.clone());

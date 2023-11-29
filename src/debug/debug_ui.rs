@@ -6,7 +6,7 @@ use bevy::{
     prelude::{
         Color, EventReader, IntoSystemConfigs, IntoSystemSetConfigs,
         KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With, Update,
-    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::{self, gizmos::Gizmos, GizmoConfig}, pbr::wireframe::WireframeConfig, ecs::schedule::common_conditions::in_state,
+    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::{self, gizmos::Gizmos, GizmoConfig}, pbr::{wireframe::WireframeConfig, ScreenSpaceAmbientOcclusionQualityLevel, ScreenSpaceAmbientOcclusionSettings}, ecs::{schedule::common_conditions::in_state, system::Commands, entity::Entity}, render::camera::{TemporalJitter, Camera},
 };
 use bevy_egui::{
     egui::{self, Rgba, Slider, Button},
@@ -48,7 +48,20 @@ fn display_window_settings(
     mut ui_state: ResMut<DebugUIState>,
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
     mut exit: EventWriter<AppExit>,
+    camera: Query<
+        (
+            Entity,
+            Option<&ScreenSpaceAmbientOcclusionSettings>,
+            Option<&TemporalJitter>,
+        ),
+        With<Camera>,
+    >,
+    mut commands: Commands,
 ) {
+    let (camera_entity, ssao, jitter) = camera.single();
+
+    let mut commands = commands.entity(camera_entity);
+
     egui::Window::new("window stuff").show(egui.ctx_mut(), |ui| {
         ui.heading("Window size");
         ui.label(format!("W x H: {} x {}", windows.single_mut().width(), windows.single_mut().height()));
@@ -64,6 +77,62 @@ fn display_window_settings(
             ui.radio_value(&mut ui_state.window_mode, WindowMode::Fullscreen, "Fullscreen");
         });
         ui.checkbox(&mut ui_state.use_vsync, "Vsync");
+        ui.separator();
+        egui::containers::ComboBox::from_label("SSAO Quality")
+            .selected_text(
+                match ui_state.ssao_quality {
+                    ScreenSpaceAmbientOcclusionQualityLevel::Low => "Low",
+                    ScreenSpaceAmbientOcclusionQualityLevel::Medium => "Medium",
+                    ScreenSpaceAmbientOcclusionQualityLevel::High => "High",
+                    ScreenSpaceAmbientOcclusionQualityLevel::Ultra => "Ultra",
+                    _ => "Off/Custom",
+                }
+            )
+            .show_ui(ui, |content| {
+                content.selectable_value(
+                    &mut ui_state.ssao_quality,
+                    ScreenSpaceAmbientOcclusionQualityLevel::Custom { slice_count: 0, samples_per_slice_side: 0 },
+                    "Off",
+                );
+                content.selectable_value(
+                    &mut ui_state.ssao_quality,
+                    ScreenSpaceAmbientOcclusionQualityLevel::Low,
+                    "Low",
+                );
+                content.selectable_value(
+                    &mut ui_state.ssao_quality,
+                    ScreenSpaceAmbientOcclusionQualityLevel::Medium,
+                    "Medium",
+                );
+                content.selectable_value(
+                    &mut ui_state.ssao_quality,
+                    ScreenSpaceAmbientOcclusionQualityLevel::High,
+                    "High",
+                );
+                content.selectable_value(
+                    &mut ui_state.ssao_quality,
+                    ScreenSpaceAmbientOcclusionQualityLevel::Ultra,
+                    "Ultra",
+                );
+            });
+        if ui.add(Button::new("Apply SSAO Settings")).on_hover_text("Changes the SSAO quality to the one selected.").clicked() {
+            commands.remove::<ScreenSpaceAmbientOcclusionSettings>();
+            match ui_state.ssao_quality {
+                ScreenSpaceAmbientOcclusionQualityLevel::Custom { slice_count, samples_per_slice_side } => commands.remove::<ScreenSpaceAmbientOcclusionSettings>(),
+                _ => {
+                        commands.insert(ScreenSpaceAmbientOcclusionSettings {
+                        quality_level: ui_state.ssao_quality,
+                    })
+                },
+            };
+        }
+        if ui.checkbox(&mut ui_state.temporaljitter, "TemporalJitter").clicked() {
+            if ui_state.temporaljitter {
+                commands.insert(TemporalJitter::default());
+            } else {
+                commands.remove::<TemporalJitter>();
+            }
+        }
         ui.separator();
         if ui.add(Button::new("Quit")).on_hover_text("Exits the game.").clicked() {
             exit.send(AppExit);
@@ -306,22 +375,22 @@ fn display_material_editor(
         ui.heading("Material properties");
 
         // base_color
-        ui.label("Base color");
+        // ui.label("Base color");
 
         let selected_mat = materials.get_mut_by_id(ui_state.selected_mat).unwrap();
 
-        let mut editable_color = Rgba::from_rgba_unmultiplied(
-            selected_mat.base_color.r(),
-            selected_mat.base_color.g(),
-            selected_mat.base_color.b(),
-            selected_mat.base_color.a(),
-        );
-        egui::widgets::color_picker::color_edit_button_rgba(
-            ui,
-            &mut editable_color,
-            egui::color_picker::Alpha::BlendOrAdditive,
-        );
-        selected_mat.base_color = Color::from(editable_color.to_array());
+        // let mut editable_color = Rgba::from_rgba_unmultiplied(
+        //     selected_mat.base_color.r(),
+        //     selected_mat.base_color.g(),
+        //     selected_mat.base_color.b(),
+        //     selected_mat.base_color.a(),
+        // );
+        // egui::widgets::color_picker::color_edit_button_rgba(
+        //     ui,
+        //     &mut editable_color,
+        //     egui::color_picker::Alpha::BlendOrAdditive,
+        // );
+        // selected_mat.base_color = Color::from(editable_color.to_array());
         ui.label("Perceptual Roughness");
         ui.add(Slider::new(
             &mut selected_mat.perceptual_roughness,
@@ -331,20 +400,20 @@ fn display_material_editor(
         ui.add(Slider::new(&mut selected_mat.metallic, 0.0..=1.0f32));
         ui.label("Reflectance");
         ui.add(Slider::new(&mut selected_mat.reflectance, 0.0..=1.0f32));
-        ui.label("Emissive");
+        // ui.label("Emissive");
 
-        let mut editable_emissive = Rgba::from_rgba_unmultiplied(
-            selected_mat.emissive.r(),
-            selected_mat.emissive.g(),
-            selected_mat.emissive.b(),
-            selected_mat.emissive.a(),
-        );
-        egui::widgets::color_picker::color_edit_button_rgba(
-            ui,
-            &mut editable_emissive,
-            egui::color_picker::Alpha::Opaque,
-        );
-        selected_mat.emissive = Color::from(editable_emissive.to_array());
+        // let mut editable_emissive = Rgba::from_rgba_unmultiplied(
+        //     selected_mat.emissive.r(),
+        //     selected_mat.emissive.g(),
+        //     selected_mat.emissive.b(),
+        //     selected_mat.emissive.a(),
+        // );
+        // egui::widgets::color_picker::color_edit_button_rgba(
+        //     ui,
+        //     &mut editable_emissive,
+        //     egui::color_picker::Alpha::Opaque,
+        // );
+        // selected_mat.emissive = Color::from(editable_emissive.to_array());
 
         // ui.label("Opacity");
         // ui.add(Slider::new(&mut selected_mat.opacity, 0.0..=1.0f32));
@@ -402,6 +471,8 @@ impl Plugin for DebugUIPlugins {
                 selected_mat: Rock::into_voxel().0,
                 window_mode: WindowMode::Windowed,
                 use_vsync: true,
+                ssao_quality: ScreenSpaceAmbientOcclusionQualityLevel::Custom { slice_count: 0, samples_per_slice_side: 0 },
+                temporaljitter: true,
             });
     }
 }
@@ -415,4 +486,6 @@ pub struct DebugUIState {
     pub selected_mat: u16,
     pub window_mode: WindowMode,
     pub use_vsync: bool,
+    pub ssao_quality: ScreenSpaceAmbientOcclusionQualityLevel,
+    pub temporaljitter: bool,
 }

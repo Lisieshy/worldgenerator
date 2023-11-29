@@ -6,7 +6,7 @@
 
 use bevy::{
     prelude::*,
-    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin
+    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::{wireframe::WireframePlugin, ScreenSpaceAmbientOcclusionBundle}, core_pipeline::experimental::taa::{TemporalAntiAliasPlugin, TemporalAntiAliasBundle}
         // Diagnostics,
     // },
     // app::AppExit,
@@ -64,6 +64,7 @@ fn main() {
             //     watch_for_changes: true,
             //     ..default()
             // })
+            // TemporalAntiAliasPlugin,
             WireframePlugin,
         ))
         .add_state::<AppState>()
@@ -112,6 +113,7 @@ fn setup(
             ..Default::default()
         }),
         camera: Camera {
+            // hdr: true,
             order: 1,
             ..default()
         },
@@ -123,12 +125,14 @@ fn setup(
         ..Default::default()
     })
     .insert(voxel::player::PlayerController::default())
+    // .insert(ScreenSpaceAmbientOcclusionBundle::default())
+    // .insert(TemporalAntiAliasBundle::default())
     .insert(Fxaa::default())
     .insert(bevy_atmosphere::plugin::AtmosphereCamera::default());
 
     cmds.insert_resource(AmbientLight {
-        color: Color::WHITE,
         brightness: 1.0,
+        ..Default::default()
     });
 }
 

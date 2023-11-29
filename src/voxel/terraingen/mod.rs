@@ -14,7 +14,7 @@ use self::{
     noise::{Heightmap, get_chunk_continentalness, get_chunk_erosion, get_chunk_peaks_valleys},
 };
 
-use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH, materials::Rock, material::VoxelMaterial };
+use super::{storage::VoxelBuffer, ChunkShape, Voxel, CHUNK_LENGTH_U, CHUNK_LENGTH, materials::{Rock, Air}, material::VoxelMaterial, CHUNK_HEIGHT };
 
 pub mod biomes;
 
@@ -99,21 +99,35 @@ impl TerrainGenerator {
         let erosion_noise = get_chunk_erosion(chunk_key, CHUNK_LENGTH_U, seed);
         let peaks_valleys_noise = get_chunk_peaks_valleys(chunk_key, CHUNK_LENGTH_U, seed);
 
-        let continentalness = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&continentalness_noise);
-        let erosion = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&erosion_noise);
-        let peaks_valleys = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&peaks_valleys_noise);
+        // let continentalness = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&continentalness_noise);
+        // let erosion = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&erosion_noise);
+        // let peaks_valleys = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&peaks_valleys_noise);
+        
+        let added_noises = (0..continentalness_noise.len()).map(|x| (continentalness_noise[x] + erosion_noise[x] + peaks_valleys_noise[x]) / 3.0).collect::<Vec<f32>>();
+        let added_heightmap = Heightmap::<CHUNK_LENGTH_U, CHUNK_LENGTH_U>::from_slice(&added_noises);
+
 
         let mut surface_level = 64;
 
         Extent::from_min_and_shape(UVec2::ZERO, UVec2::new(CHUNK_LENGTH, CHUNK_LENGTH))
             .iter2()
             .for_each(|pos| {
-                surface_level += ((continentalness.getf(pos.into()) + erosion.getf(pos.into()) + peaks_valleys.getf(pos.into()) ) / 3.0) as i32;
+                surface_level += added_heightmap.getf(pos.into()) as i32;
                 // surface_level += erosion.getf(pos.into()) as i32;
 
                 for h in 0..surface_level {
                     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Rock::into_voxel();
                 }
+
+                // fill the rest with air
+                for h in surface_level..CHUNK_HEIGHT as i32 {
+                    *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Air::into_voxel();
+                }
+
+                let biome = &self.biome_list[0];
+
+                biome.carve_terrain_at_xz(chunk_key, pos.x, pos.y, added_heightmap, buffer);
+
                 // for h in surface_level..73 {
                 //     *buffer.voxel_at_mut([pos.x, h as u32, pos.y].into()) = Water::into_voxel();
                 // }
@@ -133,7 +147,7 @@ impl Plugin for TerrainGeneratorPlugin {
     fn build(&self, _: &mut bevy::prelude::App) {
         TERRAIN_GENERATOR
             .write()
-            .unwrap();
+            .unwrap()
             // .register_biome_generator(
             //     0.0f32,
             //     biomes::BasicPlainsBiomeTerrainGenerator.into_boxed_generator(),
@@ -146,9 +160,9 @@ impl Plugin for TerrainGeneratorPlugin {
             //     3.21,
             //     biomes::BasicSnowyPlainsBiomeTerrainGenerator.into_boxed_generator(),
             // )
-            // .register_biome(
-            //     biomes::BasicPlainsBiomeTerrainGenerator.into_boxed_generator(),
-            // )
+            .register_biome(
+                biomes::BasicPlainsBiomeTerrainGenerator.into_boxed_generator(),
+            );
             // .register_biome(
             //     biomes::BasicDesertBiomeTerrainGenerator.into_boxed_generator(),
             // )

@@ -15,7 +15,7 @@ use crate::voxel::material::{VoxelMaterial, VoxelMaterialRegistry};
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::world::chunks::get_chunk_for_pos;
 
-use super::materials::{Rock, Void};
+use super::materials::{Rock, Void, Air};
 use super::{ChunkShape, DirtyChunks};
 
 use bevy_mod_raycast::prelude::*;
@@ -250,7 +250,7 @@ pub fn handle_player_inputs(
                     pos_in_chunk.x as u32,
                     pos_in_chunk.y as u32,
                     pos_in_chunk.z as u32,
-                ].into()) != Void::into_voxel() {
+                ].into()) != Air::into_voxel() {
                     return;
                 }
                 *buffer.voxel_at_mut([
@@ -284,7 +284,7 @@ pub fn handle_player_inputs(
                     pos_in_chunk.x as u32,
                     (pos_in_chunk.y - 1.) as u32,
                     pos_in_chunk.z as u32,
-                ].into()) = Void::into_voxel();
+                ].into()) = Air::into_voxel();
             }).and_then(|_| {
                 dirty_chunks.mark_dirty(chunk_pos.as_ivec3());
                 Some(())
