@@ -23,8 +23,8 @@ const MAX_TEXTURE_COUNT: usize = 14;
 pub struct VoxelTerrainMesh;
 
 impl VoxelTerrainMesh {
-    pub const ATTRIBUTE_DATA: MeshVertexAttribute =
-        MeshVertexAttribute::new("Vertex_Data", 69696969, VertexFormat::Uint32);
+    pub const ATTRIBUTE_MATERIAL_INDEX: MeshVertexAttribute =
+        MeshVertexAttribute::new("Vertex_Material_Index", 69696969, VertexFormat::Uint32);
 }
 
 #[derive(ShaderType, Clone, Copy, Debug, Default, Pod, Zeroable)]
@@ -47,16 +47,6 @@ pub struct GpuTerrainMaterial {
     pub textures: Vec<Handle<Image>>,
 }
 
-// impl Default for GpuTerrainMaterial {
-//     fn default() -> Self {
-//         Self {
-//             // render_distance: 16,
-//             // materials: [default(); 256],
-//             textures: vec![],
-//         }
-//     }
-// }
-
 impl Material for GpuTerrainMaterial {
     fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
         "shaders/terrain_pipeline.wgsl".into()
@@ -76,7 +66,7 @@ impl Material for GpuTerrainMaterial {
             Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
             Mesh::ATTRIBUTE_NORMAL.at_shader_location(1),
             Mesh::ATTRIBUTE_UV_0.at_shader_location(2),
-            VoxelTerrainMesh::ATTRIBUTE_DATA.at_shader_location(3),
+            VoxelTerrainMesh::ATTRIBUTE_MATERIAL_INDEX.at_shader_location(3),
         ])?;
         descriptor.vertex.buffers = vec![vertex_layout];
         Ok(())

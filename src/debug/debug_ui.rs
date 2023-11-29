@@ -297,7 +297,7 @@ fn display_material_editor(
                     .for_each(|(mat_index, mat)| {
                         content.selectable_value(
                             &mut ui_state.selected_mat,
-                            mat_index as u8,
+                            mat_index as u16,
                             mat.name,
                         );
                     })
@@ -412,7 +412,7 @@ pub struct DebugUIState {
     display_mat_debug: bool,
 
     // DD
-    pub selected_mat: u8,
+    pub selected_mat: u16,
     pub window_mode: WindowMode,
     pub use_vsync: bool,
 }

@@ -91,7 +91,7 @@ fn daylight_cycle(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let t = time.elapsed_seconds_wrapped() / 32.0;
+        let t = time.elapsed_seconds_wrapped() / 128.0;
         atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
@@ -115,7 +115,7 @@ impl Plugin for VoxelWorldSkyboxPlugin {
         app
             .insert_resource(AtmosphereModel::default())
             .insert_resource(DaylightCycleTimer(Timer::new(
-                bevy::utils::Duration::from_millis(50),
+                bevy::utils::Duration::ZERO,
                 TimerMode::Repeating,
             )))
             .add_systems(OnEnter(AppState::InGame), setup_environment)

@@ -24,7 +24,7 @@ pub struct MaterialRegistryInfo {
 
 /// Helper / marker trait for voxel materials.
 pub trait VoxelMaterial {
-    const ID: u8;
+    const ID: u16;
 
     fn into_voxel() -> Voxel {
         Voxel(Self::ID)
@@ -40,7 +40,7 @@ macro_rules! voxel_material {
             pub const NAME: &'static str = stringify!($types);
         }
         impl $crate::voxel::material::VoxelMaterial for $types {
-            const ID: u8 = $id;
+            const ID: u16 = $id;
         }
     };
 }
@@ -70,11 +70,11 @@ pub struct VoxelMaterialRegistry {
 #[allow(dead_code)]
 impl VoxelMaterialRegistry {
     #[inline]
-    pub fn get_by_id(&self, id: u8) -> Option<&MaterialRegistryInfo> {
+    pub fn get_by_id(&self, id: u16) -> Option<&MaterialRegistryInfo> {
         self.materials.get(id as usize)
     }
 
-    pub fn get_mut_by_id(&mut self, id: u8) -> Option<&mut MaterialRegistryInfo> {
+    pub fn get_mut_by_id(&mut self, id: u16) -> Option<&mut MaterialRegistryInfo> {
         self.materials.get_mut(id as usize)
     }
 
@@ -84,8 +84,8 @@ impl VoxelMaterialRegistry {
             .map(|x| self.materials.get(*x).unwrap())
     }
 
-    pub fn get_id_for_type<M: 'static>(&self) -> Option<u8> {
-        self.mat_ids.get(&TypeId::of::<M>()).map(|x| *x as u8)
+    pub fn get_id_for_type<M: 'static>(&self) -> Option<u16> {
+        self.mat_ids.get(&TypeId::of::<M>()).map(|x| *x as u16)
     }
 
     pub fn register_material<M: 'static>(&mut self, mat: MaterialRegistryInfo) {

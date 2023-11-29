@@ -11,7 +11,7 @@ use ndshape::{RuntimeShape, Shape};
 
 use super::VoxelTerrainMesh;
 
-const UV_SCALE: f32 = 1.0;
+// const UV_SCALE: f32 = 1.0;
 
 /// Intermediate buffers for greedy meshing of voxel data which are reusable between frames to not allocate.
 pub struct MeshBuffers<T, S: Shape<3, Coord = u32>>
@@ -50,72 +50,6 @@ pub fn mesh_buffer<T, S>(
     T: Copy + Default + MaterialVoxel,
     S: Shape<3, Coord = u32>,
 {
-    // mesh_buffers
-    //     .visible_buffer
-    //     .reset();
-
-    // let dst_shape = mesh_buffers.scratch_buffer.shape().clone();
-
-    // copy3(
-    //     buffer.shape().as_array(),
-    //     buffer.slice(),
-    //     buffer.shape(),
-    //     [0; 3],
-    //     mesh_buffers.scratch_buffer.slice_mut(),
-    //     &dst_shape,
-    //     [1; 3],
-    // );
-
-    // visible_block_faces(
-    //     mesh_buffers.scratch_buffer.slice(),
-    //     mesh_buffers.scratch_buffer.shape(),
-    //     [0; 3],
-    //     mesh_buffers
-    //         .scratch_buffer
-    //         .shape()
-    //         .as_array()
-    //         .map(|axis| axis - 1),
-    //     &RIGHT_HANDED_Y_UP_CONFIG.faces,
-    //     &mut mesh_buffers.visible_buffer,
-    // );
-
-    // let num_indices = mesh_buffers.visible_buffer.num_quads() * 6;
-    // let num_vertices = mesh_buffers.visible_buffer.num_quads() * 4;
-    // let mut indices = Vec::with_capacity(num_indices);
-    // let mut positions = Vec::with_capacity(num_vertices);
-    // let mut normals = Vec::with_capacity(num_vertices);
-    // let mut tex_coords = Vec::with_capacity(num_vertices);
-
-    // for (group, face) in mesh_buffers.visible_buffer.groups.clone().into_iter().zip(RIGHT_HANDED_Y_UP_CONFIG.faces.into_iter()) {
-    //     for quad in group.iter() {
-    //         indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
-    //         positions.extend_from_slice(&face.quad_mesh_positions(&(*quad).into(), scale));
-    //         normals.extend_from_slice(&face.quad_mesh_normals());
-    //         tex_coords.extend_from_slice(&face.tex_coords(
-    //             RIGHT_HANDED_Y_UP_CONFIG.u_flip_face,
-    //             true,
-    //             &(*quad).into(),
-    //         ));
-    //     }
-    // }
-
-    // render_mesh.insert_attribute(
-    //     Mesh::ATTRIBUTE_POSITION,
-    //     VertexAttributeValues::Float32x3(positions),
-    // );
-
-    // render_mesh.insert_attribute(
-    //     Mesh::ATTRIBUTE_NORMAL,
-    //     VertexAttributeValues::Float32x3(normals),
-    // );
-
-    // render_mesh.insert_attribute(
-    //     Mesh::ATTRIBUTE_UV_0,
-    //     VertexAttributeValues::Float32x2(tex_coords),
-    // );
-
-    // render_mesh.set_indices(Some(Indices::U32(indices.clone())));
-
     mesh_buffers
         .greedy_buffer
         .reset(buffer.shape().size() as usize);
@@ -153,7 +87,7 @@ pub fn mesh_buffer<T, S>(
     let mut tex_coords = Vec::with_capacity(num_vertices);
     let mut data = Vec::with_capacity(num_vertices);
 
-    for (block_face_normal_index, (group, face)) in mesh_buffers
+    for (_, (group, face)) in mesh_buffers
         .greedy_buffer
         .quads
         .groups
@@ -171,8 +105,7 @@ pub fn mesh_buffer<T, S>(
                 &quad,
             ));
             data.extend_from_slice(
-                &[(block_face_normal_index as u32) << 8u32
-                    | buffer
+                &[buffer
                         .voxel_at(quad.minimum.map(|x| x - 1).into())
                         .as_mat_id() as u32; 4],
             );
@@ -199,11 +132,11 @@ pub fn mesh_buffer<T, S>(
         }
     }
 
-    for uv in tex_coords.iter_mut() {
-        for c in uv.iter_mut() {
-            *c *= UV_SCALE;
-        }
-    }
+    // for uv in tex_coords.iter_mut() {
+    //     for c in uv.iter_mut() {
+    //         *c *= UV_SCALE;
+    //     }
+    // }
 
     render_mesh.insert_attribute(
         Mesh::ATTRIBUTE_POSITION,
@@ -221,7 +154,7 @@ pub fn mesh_buffer<T, S>(
     );
 
     render_mesh.insert_attribute(
-        VoxelTerrainMesh::ATTRIBUTE_DATA,
+        VoxelTerrainMesh::ATTRIBUTE_MATERIAL_INDEX,
         VertexAttributeValues::Uint32(data),
     );
 
