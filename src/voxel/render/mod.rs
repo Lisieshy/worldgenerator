@@ -1,5 +1,5 @@
 mod mesh;
 pub use mesh::*;
 
-mod chunk_material;
-pub use chunk_material::*;
+mod materials;
+pub use materials::*;

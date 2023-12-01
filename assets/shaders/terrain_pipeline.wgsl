@@ -22,12 +22,18 @@
 
 const VOXEL_MAT_FLAG_LIQUID: u32 = 2u; // 1 << 1
 const TERRAIN_CHUNK_LENGTH: u32 = 32u;
-const MAX_TEXTURE_COUNT: u32 = 15u;
+const MAX_MATERIAL_COUNT: u32 = 15u;
 
 struct VoxelMat {
-    base_color: vec4<f32>,
+    // base_color_r: f32,
+    // base_color_g: f32,
+    // base_color_b: f32,
+    // base_color_a: f32,
     flags: u32,
-    emissive: vec4<f32>,
+    emissive_r: f32,
+    emissive_g: f32,
+    emissive_b: f32,
+    emissive_a: f32,
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
@@ -40,7 +46,7 @@ var textures: binding_array<texture_2d<f32>>;
 var nearest_sampler: sampler;
 
 @group(1) @binding(2)
-var<uniform> voxel_materials: array<VoxelMat, MAX_TEXTURE_COUNT>;
+var<uniform> voxel_materials: array<VoxelMat, MAX_MATERIAL_COUNT>;
 
 struct Vertex {
     @builtin(instance_index) instance_index: u32,
@@ -108,7 +114,7 @@ fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, voxel_index: u32, frag:
     var pbr_input: PbrInput = pbr_input_new();
     pbr_input.material.metallic = voxel_mat.metallic;
     pbr_input.material.perceptual_roughness = voxel_mat.perceptual_roughness;
-    // pbr_input.material.emissive = voxel_mat.emissive;
+    pbr_input.material.emissive = vec4<f32>(voxel_mat.emissive_r, voxel_mat.emissive_g, voxel_mat.emissive_b, voxel_mat.emissive_a);
     pbr_input.material.reflectance = voxel_mat.reflectance;
     pbr_input.material.base_color = base_color;
 
