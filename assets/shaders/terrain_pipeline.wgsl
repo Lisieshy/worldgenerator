@@ -33,7 +33,6 @@ struct VoxelMat {
     reflectance: f32,
 };
 
-
 @group(1) @binding(0)
 var textures: binding_array<texture_2d<f32>>;
 
@@ -41,7 +40,7 @@ var textures: binding_array<texture_2d<f32>>;
 var nearest_sampler: sampler;
 
 @group(1) @binding(2)
-var<uniform> voxel_materials: array<VoxelMat, 4>;
+var<uniform> voxel_materials: array<VoxelMat, MAX_TEXTURE_COUNT>;
 
 struct Vertex {
     @builtin(instance_index) instance_index: u32,
@@ -103,13 +102,13 @@ fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, voxel_index: u32, frag:
     let inner_uv = fract(frag.uv);
     var base_color: vec4<f32> = textureSample(textures[voxel_index], nearest_sampler, inner_uv);
 
-    base_color = base_color + voxel_mat.base_color;
+    // base_color = base_color + vec4<f32>(voxel_mat.base_color, 1.0);
 
 
     var pbr_input: PbrInput = pbr_input_new();
     pbr_input.material.metallic = voxel_mat.metallic;
     pbr_input.material.perceptual_roughness = voxel_mat.perceptual_roughness;
-    pbr_input.material.emissive = voxel_mat.emissive;
+    // pbr_input.material.emissive = voxel_mat.emissive;
     pbr_input.material.reflectance = voxel_mat.reflectance;
     pbr_input.material.base_color = base_color;
 
@@ -134,6 +133,8 @@ fn fragment(in: Fragment) -> @location(0) vec4<f32> {
     /// PBR lighting input data preparation
     var pbr_input = prepare_pbr_input_from_voxel_mat(voxel_mat, voxel_index, in);
     let pbr_color = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
+
+    // return vec4<f32>(voxel_mat.base_color, 1.0);
 
     return pbr_color;
 

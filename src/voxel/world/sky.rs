@@ -1,12 +1,10 @@
 use bevy::{prelude::{
-    Color, Commands, Deref, DirectionalLight, DirectionalLightBundle, Entity, ParamSet, Plugin,
-    Query, Res, Resource, Transform, Vec3, With, Startup, Update,
-}, ecs::{schedule::{OnEnter, IntoSystemConfigs, common_conditions::in_state}, component::Component, system::ResMut}, time::{Timer, TimerMode, Time}, math::Quat, asset::Assets, render::mesh::{Mesh, shape}, pbr::{StandardMaterial, PbrBundle}};
+    Color, Commands, DirectionalLight, DirectionalLightBundle, Plugin,
+    Query, Res, Resource, Transform, Vec3, With, Update,
+}, ecs::{schedule::{OnEnter, IntoSystemConfigs, common_conditions::in_state}, component::Component, system::ResMut}, time::{Timer, TimerMode, Time}, math::Quat };
 use bevy_atmosphere::{model::AtmosphereModel, system_param::AtmosphereMut, collection::nishita::Nishita};
 
 use crate::AppState;
-
-use super::player::PlayerController;
 
 // #[derive(Resource, Deref)]
 // pub struct SkyLightEntity(Entity);

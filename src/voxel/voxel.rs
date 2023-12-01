@@ -1,8 +1,6 @@
 use block_mesh::{MergeVoxel, Voxel as MeshableVoxel};
 use serde::{Serialize, Deserialize};
 
-use super::{materials::Air, material::VoxelMaterial};
-
 #[derive(Clone, Copy, Hash, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Voxel(pub u16);
 

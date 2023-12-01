@@ -1,7 +1,7 @@
 use bevy::{
     log::info,
     prelude::{Color, Plugin, Resource},
-    utils::HashMap, pbr::StandardMaterial, asset::Handle, render::texture::Image, math::Vec3,
+    utils::HashMap,
 };
 use bitflags::bitflags;
 use std::{any::type_name, any::TypeId};
@@ -14,9 +14,9 @@ use super::Voxel;
 #[derive(Default)]
 pub struct MaterialRegistryInfo {
     pub name: &'static str,
-    pub base_color: Vec3,
+    pub base_color: Color,
     pub flags: VoxelMaterialFlags,
-    pub emissive: Vec3,
+    pub emissive: Color,
     pub perceptual_roughness: f32,
     pub metallic: f32,
     pub reflectance: f32,

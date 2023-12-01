@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use anyhow::Result;
 
 use super::{
@@ -15,7 +14,7 @@ use bevy::{
         Added, Commands, Component, Entity, IntoSystemConfigs, IntoSystemSetConfigs,
         Plugin, Query, ResMut, SystemSet, Update,
     },
-    tasks::{AsyncComputeTaskPool, Task}, ecs::{system::Res, schedule::common_conditions::in_state}, log::info, math::IVec3,
+    tasks::{AsyncComputeTaskPool, Task}, ecs::{system::Res, schedule::common_conditions::in_state}, math::IVec3,
 };
 use directories::BaseDirs;
 use futures_lite::future;

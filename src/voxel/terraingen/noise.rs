@@ -1,5 +1,3 @@
-use std::ops::{Add, Mul};
-
 use bevy::math::{IVec3, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
 
 use simdnoise::*;
@@ -18,6 +16,7 @@ pub fn rand2to2(p: Vec2) -> Vec2 {
     )
 }
 
+#[allow(dead_code)]
 pub fn rand2to1i(vec: Vec2) -> f32 {
     let mut p3 = (vec.xyx() * 0.39).fract();
     p3 += p3.dot(p3.yzx());
@@ -51,6 +50,7 @@ pub fn rand1to3(p: f32) -> Vec3 {
     )
 }
 
+#[allow(dead_code)]
 // This was ported from the code at https://www.ronja-tutorials.com/post/028-voronoi-noise/
 pub fn voronoi(p: Vec2) -> Vec2 {
     const NEIGHBOUR_RANGE: i32 = 2; // A neighbour range of 1 will generate some weird artifacts lets use 2.

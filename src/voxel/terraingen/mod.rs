@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, sync::RwLock };
 
 use bevy::{
     math::IVec3,
-    prelude::Plugin, log::info,
+    prelude::Plugin,
 };
 use once_cell::sync::Lazy;
 
@@ -29,19 +29,19 @@ pub static TERRAIN_GENERATOR: Lazy<RwLock<TerrainGenerator>> = Lazy::new(Default
 
 #[derive(Default)]
 pub struct TerrainGenerator {
-    biomes_map: BTreeMap<FloatOrd<f32>, Box<dyn BiomeTerrainGenerator>>,
+    _biomes_map: BTreeMap<FloatOrd<f32>, Box<dyn BiomeTerrainGenerator>>,
     biome_list: Vec<Box<dyn BiomeTerrainGenerator>>,
 }
 
-const BIOME_INVSCALE: f32 = 0.005;
+const _BIOME_INVSCALE: f32 = 0.005;
 
 impl TerrainGenerator {
-    pub fn register_biome_generator(
+    pub fn _register_biome_generator(
         &mut self,
         chance: f32,
         biome: Box<dyn BiomeTerrainGenerator>,
     ) -> &mut Self {
-        self.biomes_map.insert(FloatOrd(chance), biome);
+        self._biomes_map.insert(FloatOrd(chance), biome);
         self
     }
 
@@ -67,7 +67,7 @@ impl TerrainGenerator {
     // }
 
     #[allow(clippy::borrowed_box)]
-    pub fn biome_at_xz(
+    pub fn _biome_at_xz(
         &self,
         x: i32,
         z: i32,

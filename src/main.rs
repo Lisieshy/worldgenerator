@@ -6,7 +6,7 @@
 
 use bevy::{
     prelude::*,
-    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::{wireframe::WireframePlugin, ScreenSpaceAmbientOcclusionBundle}, core_pipeline::experimental::taa::{TemporalAntiAliasPlugin, TemporalAntiAliasBundle}
+    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin,
         // Diagnostics,
     // },
     // app::AppExit,

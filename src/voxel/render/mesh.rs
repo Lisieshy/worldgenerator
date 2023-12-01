@@ -1,11 +1,11 @@
 use std::marker::PhantomData;
 
-use crate::voxel::{storage::VoxelBuffer, MaterialVoxel, CHUNK_HEIGHT};
+use crate::voxel::{storage::VoxelBuffer, MaterialVoxel};
 use bevy::{
     prelude::Mesh,
     render::mesh::{Indices, VertexAttributeValues},
 };
-use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG, ilattice::{extent::Extent, glam::UVec2}};
+use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG};
 use ndcopy::copy3;
 use ndshape::{RuntimeShape, Shape};
 

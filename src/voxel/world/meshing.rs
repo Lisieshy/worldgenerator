@@ -6,13 +6,12 @@ use super::{
     Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT, WorldSettings,
 };
 use crate::{voxel::{
-    render::{mesh_buffer, MeshBuffers, GpuTerrainMaterial, ChunkMaterialSingleton},
+    render::{mesh_buffer, MeshBuffers, ChunkMaterialSingleton },
     storage::ChunkMap,
-}, AppState, MyAssets};
+}, AppState};
 use bevy::{
-    pbr::NotShadowCaster,
     prelude::*,
-    render::{primitives::Aabb, render_resource::PrimitiveTopology, texture::{ImageSampler, ImageSamplerDescriptor}},
+    render::{primitives::Aabb, render_resource::PrimitiveTopology },
     tasks::{AsyncComputeTaskPool, Task},
 };
 use futures_lite::future;

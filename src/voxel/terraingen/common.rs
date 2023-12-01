@@ -19,6 +19,7 @@ pub fn terrain_generate_world_bottom_border(buffer: &mut VoxelBuffer<Voxel, Chun
     )
 }
 
+#[allow(dead_code)]
 /// Carve the general terrain shape for a chunk.
 pub fn terrain_carve_heightmap(
     buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
@@ -54,6 +55,7 @@ pub fn terrain_carve_heightmap(
         });
 }
 
+#[allow(dead_code)]
 pub fn make_pine_tree<T: VoxelMaterial, L: VoxelMaterial>(
     buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     origin: UVec3,
@@ -87,6 +89,7 @@ pub fn make_pine_tree<T: VoxelMaterial, L: VoxelMaterial>(
         })
 }
 
+#[allow(dead_code)]
 /// Make a tree using SDF functions
 pub fn make_tree<T: VoxelMaterial, L: VoxelMaterial>(
     buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
@@ -120,6 +123,7 @@ pub fn make_tree<T: VoxelMaterial, L: VoxelMaterial>(
         });
 }
 
+#[allow(dead_code)]
 pub fn make_rock<V: VoxelMaterial>(
     buffer: &mut VoxelBuffer<Voxel, ChunkShape>,
     origin: UVec3,

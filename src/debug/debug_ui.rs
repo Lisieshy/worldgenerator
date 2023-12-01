@@ -1,12 +1,10 @@
-use std::fmt::format;
-
 use bevy::{
     diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin, DiagnosticsStore},
-    input::{keyboard::KeyboardInput, ButtonState, Input},
+    input::Input,
     prelude::{
-        Color, EventReader, IntoSystemConfigs, IntoSystemSetConfigs,
-        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, Vec3, IVec3, Transform, Query, Quat, EventWriter, With, Update,
-    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::{self, gizmos::Gizmos, GizmoConfig}, pbr::{wireframe::WireframeConfig, ScreenSpaceAmbientOcclusionQualityLevel, ScreenSpaceAmbientOcclusionSettings}, ecs::{schedule::common_conditions::in_state, system::Commands, entity::Entity}, render::camera::{TemporalJitter, Camera},
+        Color, IntoSystemConfigs, IntoSystemSetConfigs,
+        KeyCode, Plugin, Res, ResMut, Resource, SystemSet, IVec3, Transform, Query, EventWriter, With, Update,
+    }, app::AppExit, window::{Window, PrimaryWindow, WindowMode}, gizmos::GizmoConfig, pbr::{wireframe::WireframeConfig, ScreenSpaceAmbientOcclusionQualityLevel, ScreenSpaceAmbientOcclusionSettings}, ecs::{schedule::common_conditions::in_state, system::Commands, entity::Entity}, render::camera::{TemporalJitter, Camera},
 };
 use bevy_egui::{
     egui::{self, Rgba, Slider, Button},
@@ -19,7 +17,7 @@ use directories::BaseDirs;
 use crate::{voxel::{
     material::{VoxelMaterialRegistry, VoxelMaterial}, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
-    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, VoxelWorldPlugin, materials::Rock,
+    CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, materials::Rock,
 }, AppState};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
@@ -58,7 +56,7 @@ fn display_window_settings(
     >,
     mut commands: Commands,
 ) {
-    let (camera_entity, ssao, jitter) = camera.single();
+    let (camera_entity, _, _) = camera.single();
 
     let mut commands = commands.entity(camera_entity);
 
@@ -118,7 +116,7 @@ fn display_window_settings(
         if ui.add(Button::new("Apply SSAO Settings")).on_hover_text("Changes the SSAO quality to the one selected.").clicked() {
             commands.remove::<ScreenSpaceAmbientOcclusionSettings>();
             match ui_state.ssao_quality {
-                ScreenSpaceAmbientOcclusionQualityLevel::Custom { slice_count, samples_per_slice_side } => commands.remove::<ScreenSpaceAmbientOcclusionSettings>(),
+                ScreenSpaceAmbientOcclusionQualityLevel::Custom { slice_count: _, samples_per_slice_side: _ } => commands.remove::<ScreenSpaceAmbientOcclusionSettings>(),
                 _ => {
                         commands.insert(ScreenSpaceAmbientOcclusionSettings {
                         quality_level: ui_state.ssao_quality,
@@ -207,16 +205,16 @@ fn display_player_settings(
     // );
 }
 
-fn draw_chunk_borders(
+fn _draw_chunk_borders(
     // mut lines: ResMut<DebugLines>,
     // mut shapes: ResMut<DebugShapes>,
     chunk: IVec3,
 ) {
     let length = CHUNK_LENGTH as f32;
     let height = CHUNK_HEIGHT as f32;
-    let cube_x = chunk.x as f32 + length / 2.;
-    let cube_y = chunk.y as f32 + height / 2.;
-    let cube_z = chunk.z as f32 + length / 2.;
+    let _cube_x = chunk.x as f32 + length / 2.;
+    let _cube_y = chunk.y as f32 + height / 2.;
+    let _cube_z = chunk.z as f32 + length / 2.;
 
     // shapes
     //     .cuboid()
@@ -375,22 +373,22 @@ fn display_material_editor(
         ui.heading("Material properties");
 
         // base_color
-        // ui.label("Base color");
+        ui.label("Base color");
 
         let selected_mat = materials.get_mut_by_id(ui_state.selected_mat).unwrap();
 
-        // let mut editable_color = Rgba::from_rgba_unmultiplied(
-        //     selected_mat.base_color.r(),
-        //     selected_mat.base_color.g(),
-        //     selected_mat.base_color.b(),
-        //     selected_mat.base_color.a(),
-        // );
-        // egui::widgets::color_picker::color_edit_button_rgba(
-        //     ui,
-        //     &mut editable_color,
-        //     egui::color_picker::Alpha::BlendOrAdditive,
-        // );
-        // selected_mat.base_color = Color::from(editable_color.to_array());
+        let mut editable_color = Rgba::from_rgba_unmultiplied(
+            selected_mat.base_color.r(),
+            selected_mat.base_color.g(),
+            selected_mat.base_color.b(),
+            selected_mat.base_color.a(),
+        );
+        egui::widgets::color_picker::color_edit_button_rgba(
+            ui,
+            &mut editable_color,
+            egui::color_picker::Alpha::BlendOrAdditive,
+        );
+        selected_mat.base_color = Color::from(editable_color.to_array());
         ui.label("Perceptual Roughness");
         ui.add(Slider::new(
             &mut selected_mat.perceptual_roughness,

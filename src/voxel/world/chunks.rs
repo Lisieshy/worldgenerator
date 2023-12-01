@@ -4,7 +4,7 @@ use bevy::{
         Changed, Commands, Entity, GlobalTransform, IntoSystemConfigs,
         Plugin, Query, Res, ResMut, Resource, SystemSet, With, Vec3, Update, PostUpdate, Last,
     },
-    utils::{HashMap, HashSet}, pbr::wireframe::Wireframe, gizmos::AabbGizmo, render::color::Color, ecs::schedule::common_conditions::in_state,
+    utils::{HashMap, HashSet}, gizmos::AabbGizmo, ecs::schedule::common_conditions::in_state,
 };
 use float_ord::FloatOrd;
 

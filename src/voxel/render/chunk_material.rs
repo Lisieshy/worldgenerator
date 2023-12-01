@@ -14,9 +14,10 @@ use bevy::{
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{MyAssets, AppState, voxel::material::VoxelMaterialRegistry, BlockTextures};
+use crate::{voxel::material::VoxelMaterialRegistry, BlockTextures};
 
 const MAX_TEXTURE_COUNT: usize = 15;
+const MAX_MATERIAL_COUNT: usize = 256;
 
 #[derive(Component, Clone, Default, ExtractComponent)]
 /// A marker component for voxel meshes.
@@ -30,9 +31,9 @@ impl VoxelTerrainMesh {
 #[derive(ShaderType, Clone, Copy, Debug, Default, Pod, Zeroable)]
 #[repr(C)]
 pub struct GpuVoxelMaterial {
-    base_color: Vec3,
-    emissive: Vec3,
+    base_color: [f32; 4],
     flags: u32,
+    emissive: [f32; 4],
     perceptual_roughness: f32,
     metallic: f32,
     reflectance: f32,
@@ -43,7 +44,7 @@ pub struct GpuTerrainMaterial {
     // #[uniform(0)]
     // pub render_distance: u32,
     // #[uniform(0)]
-    pub materials: [GpuVoxelMaterial; 256],
+    pub materials: Vec<GpuVoxelMaterial>,
     pub textures: Vec<Handle<Image>>,
 }
 
@@ -55,6 +56,10 @@ impl Material for GpuTerrainMaterial {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
         "shaders/terrain_pipeline.wgsl".into()
     }
+
+    // fn alpha_mode(&self) -> AlphaMode {
+    //     AlphaMode::Opaque
+    // }
 
     fn specialize(
         _pipeline: &bevy::pbr::MaterialPipeline<Self>,
@@ -102,9 +107,13 @@ impl AsBindGroup for GpuTerrainMaterial {
             textures[id] = &*image.texture_view;
         }
 
-        let mut voxel_mats = vec![GpuVoxelMaterial::default(); MAX_TEXTURE_COUNT];
-        for mat in self.materials.iter().take(MAX_TEXTURE_COUNT) {
-            voxel_mats.push(*mat);
+        let mut voxel_mats = vec![GpuVoxelMaterial::default(); MAX_MATERIAL_COUNT];
+        for (mat, out_mat) in self
+            .materials
+            .iter()
+            .zip(voxel_mats.iter_mut())
+            .take(MAX_MATERIAL_COUNT) {
+            *out_mat = *mat;
         };
 
         let bind_group = render_device.create_bind_group(
@@ -123,15 +132,30 @@ impl AsBindGroup for GpuTerrainMaterial {
                     binding: 2,
                     resource: BindingResource::Buffer(BufferBinding {
                         buffer: &render_device.create_buffer_with_data(&BufferInitDescriptor {
-                            label: "gpu_terrain_material_buffer".into(),
+                            label: "material_buffer".into(),
                             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
-                            contents: bytemuck::cast_slice(&voxel_mats),
+                            contents: bytemuck::cast_slice(&voxel_mats)
                         }),
                         offset: 0,
                         size: NonZeroU64::new(
-                            u64::from(GpuVoxelMaterial::SHADER_SIZE) * MAX_TEXTURE_COUNT as u64,
+                            u64::from(GpuVoxelMaterial::SHADER_SIZE) * MAX_MATERIAL_COUNT as u64,
                         ),
                     }),
+                    // resource: BindingResource::BufferArray(
+                    //     &[
+                    //         BufferBinding {
+                    //             buffer: &render_device.create_buffer_with_data(&BufferInitDescriptor {
+                    //                 label: "material_buffer".into(),
+                    //                 usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
+                    //                 contents: bytemuck::cast_slice(&voxel_mats[..]),
+                    //             }),
+                    //             offset: 0,
+                    //             size: NonZeroU64::new(
+                    //                 u64::from(GpuVoxelMaterial::SHADER_SIZE) * MAX_TEXTURE_COUNT as u64,
+                    //             ),
+                    //         }
+                    //     ],
+                    // )
                 },
             ],
             // &BindGroupEntries::with_indices((
@@ -180,16 +204,16 @@ impl AsBindGroup for GpuTerrainMaterial {
                 ty: BindingType::Sampler(SamplerBindingType::Filtering),
                 count: None,
             },
-            // @group(1) @binding(2) var materials: array<GpuVoxelMaterial, MAX_TEXTURE_SIZE>
+            // @group(1) @binding(2) var<uniform> materials: array<GpuVoxelMaterial, MAX_TEXTURE_SIZE>
             BindGroupLayoutEntry {
                 binding: 2,
                 visibility: ShaderStages::FRAGMENT,
                 ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
+                    ty: BufferBindingType::Uniform {},
                     has_dynamic_offset: false,
                     min_binding_size: None,
                 },
-                count: None,
+                count: NonZeroU32::new(MAX_MATERIAL_COUNT as u32),
             },
         ]
     }
@@ -205,10 +229,7 @@ fn update_chunk_material_singleton(
 ) {
     if chunk_material.is_changed() {
         let mut gpu_mats = GpuTerrainMaterial {
-            materials: [GpuVoxelMaterial {
-                flags: 0,
-                ..Default::default()
-            }; 256],
+            materials: vec![],
             // render_distance: 32,
             textures: vec![],
         };
@@ -216,13 +237,21 @@ fn update_chunk_material_singleton(
         voxel_materials
             .iter_mats()
             .enumerate()
-            .for_each(|(index, material)| {
-                gpu_mats.materials[index].base_color = material.base_color;
-                gpu_mats.materials[index].flags = material.flags.bits();
-                gpu_mats.materials[index].emissive = material.emissive;
-                gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
-                gpu_mats.materials[index].metallic = material.metallic;
-                gpu_mats.materials[index].reflectance = material.reflectance;
+            .for_each(|(_, material)| {
+                gpu_mats.materials.push(GpuVoxelMaterial {
+                    base_color: material.base_color.as_rgba_f32(),
+                    flags: material.flags.bits(),
+                    emissive: material.emissive.as_rgba_f32(),
+                    perceptual_roughness: material.perceptual_roughness,
+                    metallic: material.metallic,
+                    reflectance: material.reflectance,
+                });
+                // gpu_mats.materials[index].base_color = material.base_color.as_linear_rgba_f32();
+                // gpu_mats.materials[index].flags = material.flags.bits();
+                // gpu_mats.materials[index].emissive = material.emissive.as_linear_rgba_f32();
+                // gpu_mats.materials[index].perceptual_roughness = material.perceptual_roughness;
+                // gpu_mats.materials[index].metallic = material.metallic;
+                // gpu_mats.materials[index].reflectance = material.reflectance;
             });
 
         // @todo: maybe find a better way to handle textures
@@ -258,11 +287,7 @@ impl FromWorld for ChunkMaterialSingleton {
     fn from_world(world: &mut World) -> Self {
         let mut materials = world.resource_mut::<Assets<GpuTerrainMaterial>>();
         Self(materials.add(GpuTerrainMaterial {
-            materials: [GpuVoxelMaterial {
-                // base_color: Color::WHITE,
-                flags: 0,
-                ..Default::default()
-            }; 256],
+            materials: vec![],
             textures: vec![],
         }))
     }
@@ -311,9 +336,9 @@ impl Plugin for ChunkMaterialPlugin {
             .add_systems(
                 Update,
                 update_chunk_material_singleton
-                    .run_if(resource_changed::<VoxelMaterialRegistry>()) // @todo: not this way it's ugly
+                    .run_if(resource_exists::<BlockTextures>().and_then(resource_changed::<VoxelMaterialRegistry>()))
                     .in_set(ChunkMaterialSet)
-                    .run_if(in_state(AppState::InGame)),
+                    // .run_if(in_state(AppState::InGame)),
             );
     }
 }

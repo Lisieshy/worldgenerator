@@ -1,21 +1,18 @@
-use bevy::gizmos;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
 use bevy_egui::EguiContexts;
-use bevy_vector_shapes::painter::{self, ShapePainter};
-use bevy_vector_shapes::shapes::{DiscPainter, LinePainter, Cap, ThicknessType};
 
 use std::f32::consts::PI;
 
-use crate::AppState;
+use crate::{AppState, MyAssets};
 use crate::debug::{DebugUISet, DebugUIState};
 use crate::voxel::Voxel;
-use crate::voxel::material::{VoxelMaterial, VoxelMaterialRegistry};
+use crate::voxel::material::VoxelMaterial;
 use crate::voxel::storage::ChunkMap;
 use crate::voxel::world::chunks::get_chunk_for_pos;
 
-use super::materials::{Rock, Void, Air};
+use super::materials::Air;
 use super::{ChunkShape, DirtyChunks};
 
 use bevy_mod_raycast::prelude::*;
@@ -67,7 +64,6 @@ pub fn handle_player_inputs(
     mut chunks: ResMut<ChunkMap<Voxel, ChunkShape>>,
     mut dirty_chunks: ResMut<DirtyChunks>,
     mut raycast: Raycast,
-    mut materials: ResMut<VoxelMaterialRegistry>,
 
     // under this is only for debug/test purposes. don't forget to remove it later
     debug_ui_state: Res<DebugUIState>,
@@ -389,7 +385,7 @@ pub fn grab_cursor(
 }
 
 pub fn draw_crosshair(
-    asset_server: Res<AssetServer>,
+    assets: Res<MyAssets>,
     mut commands: Commands,
 ) {
     // painter.set_translation(Vec3::NEG_Z);
@@ -418,7 +414,7 @@ pub fn draw_crosshair(
                     background_color: Color::rgba(1.0, 1.0, 1.0, 0.5).into(),
                     ..default()
                 },
-                UiImage::new(asset_server.load("textures/crosshair.png")),
+                UiImage::new(assets.crosshair.clone()),
             ))
             .with_children(|parent| {
                 parent.spawn((
