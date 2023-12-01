@@ -158,11 +158,6 @@ impl AsBindGroup for GpuTerrainMaterial {
                     // )
                 },
             ],
-            // &BindGroupEntries::with_indices((
-            //     (0, &textures[..]),
-            //     (1, &fallback_image.sampler),
-            //     // (2, &materials[..])
-            // )),
         );
 
         Ok(PreparedBindGroup {
