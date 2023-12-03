@@ -13,7 +13,7 @@ use bevy::{
 };
 
 // use bevy_embedded_assets::EmbeddedAssetPlugin;
-use voxel::player::PlayerSettings;
+use core::player::PlayerSettings;
 
 use bevy::core_pipeline::fxaa::Fxaa;
 
@@ -23,7 +23,7 @@ use directories::BaseDirs;
 
 mod systems;
 mod debug;
-mod voxel;
+mod core;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum AppState {
@@ -76,7 +76,7 @@ fn main() {
         .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
-        .add_plugins(voxel::VoxelWorldPlugin)
+        .add_plugins(core::VoxelWorldPlugin)
         .add_plugins(debug::DebugUIPlugins)
         // .add_startup_system(setup_boot_screen)
         .add_systems(Startup, setup)
@@ -124,7 +124,7 @@ fn setup(
         transform: Transform::from_xyz(2.0, 180.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     })
-    .insert(voxel::player::PlayerController::default())
+    .insert(core::player::PlayerController::default())
     // .insert(ScreenSpaceAmbientOcclusionBundle::default())
     // .insert(TemporalAntiAliasBundle::default())
     .insert(Fxaa::default())

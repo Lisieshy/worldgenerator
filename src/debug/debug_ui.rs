@@ -14,7 +14,7 @@ use directories::BaseDirs;
 
 // use bevy_prototype_debug_lines::*;
 
-use crate::{voxel::{
+use crate::{core::{
     material::{VoxelMaterialRegistry, VoxelMaterial}, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
     CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, materials::Rock,
