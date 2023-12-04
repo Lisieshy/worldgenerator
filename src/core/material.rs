@@ -1,9 +1,9 @@
 use bevy::{
     prelude::{Color, Plugin, Resource},
-    utils::HashMap, log::info,
+    utils::HashMap,
 };
 use bitflags::bitflags;
-use std::any::{TypeId, type_name};
+use std::any::TypeId;
 
 use super::Voxel;
 
@@ -89,11 +89,11 @@ impl VoxelMaterialRegistry {
 
     pub fn register_material<M: 'static>(&mut self, mat: MaterialRegistryInfo) {
         self.materials.push(mat);
-        info!(
-            "Registered material {:?} (ID: {})",
-            type_name::<M>(),
-            self.materials.len() - 1
-        );
+        // info!(
+        //     "Registered material {:?} (ID: {})",
+        //     type_name::<M>(),
+        //     self.materials.len() - 1
+        // );
         self.mat_ids.insert(TypeId::of::<M>(), self.materials.len());
     }
 

@@ -1,4 +1,5 @@
 use bevy::{
+    prelude::*,
     math::IVec3,
     prelude::{Component, Plugin}, ecs::system::Resource,
 };
@@ -16,10 +17,12 @@ use bevy_vector_shapes::prelude::*;
 
 mod chunks_anim;
 pub mod materials;
+pub mod material;
 mod meshing;
 pub mod player;
 mod sky;
 mod terrain;
+
 
 #[derive(Resource)]
 pub struct WorldSettings {
@@ -62,3 +65,8 @@ pub type ChunkShape = ConstShape3u32<CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH>;
 // A component tagging an entity as a chunk.
 #[derive(Component)]
 pub struct Chunk(pub IVec3);
+
+
+pub(super) fn add_systems(app: &mut App) {
+    material::setup(app);
+}

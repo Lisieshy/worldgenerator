@@ -72,7 +72,7 @@ fn main() {
         // .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
         // .add_collection_to_loading_state::<_, BlockTexturesAsset>(AppState::Loading)
         .add_plugins(CorePlugin)
-        .init_resource::<PlayerSettings>()
+        // .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
         .add_plugins(core::VoxelWorldPlugin)

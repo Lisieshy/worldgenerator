@@ -1,9 +1,7 @@
 use super::{properties::BlockProperties, Block, BlocksMap};
-use bevy::log::info;
 
 macro_rules! register_block {
     ($blocks:expr, $block_id:expr, $block_states:expr, $name:expr, $properties:expr) => {
-        info!("block [{}] with id [{}] registered", $name, $block_id);
         $blocks.insert(
             $block_id,
             Block {

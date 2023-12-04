@@ -33,6 +33,8 @@ pub mod enums;
 mod blocks;
 pub use blocks::*;
 
+use self::player::PlayerSettings;
+
 pub mod schedule;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -42,6 +44,9 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         schedule::configure(app);
 
-        // blocks::add_systems(app);
+        blocks::add_systems(app);
+
+        app
+            .init_resource::<PlayerSettings>();
     }
 }
