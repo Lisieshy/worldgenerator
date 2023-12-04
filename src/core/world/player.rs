@@ -5,7 +5,8 @@ use bevy_egui::EguiContexts;
 
 use std::f32::consts::PI;
 
-use crate::{AppState, MyAssets};
+use crate::core::schedule::state::AppState;
+use crate::core::assets::UiAssets;
 use crate::debug::{DebugUISet, DebugUIState};
 use crate::core::Voxel;
 use crate::core::material::VoxelMaterial;
@@ -385,7 +386,7 @@ pub fn grab_cursor(
 }
 
 pub fn draw_crosshair(
-    assets: Res<MyAssets>,
+    assets: Res<UiAssets>,
     mut commands: Commands,
 ) {
     // painter.set_translation(Vec3::NEG_Z);
@@ -440,10 +441,10 @@ pub struct VoxelWorldPlayerControllerPlugin;
 
 impl Plugin for VoxelWorldPlayerControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::InGame), init_input)
-            .add_systems(Update, grab_cursor.after(DebugUISet::Display).run_if(in_state(AppState::InGame)))
-            .add_systems(Update, handle_player_inputs.run_if(in_state(AppState::InGame)))
-            .add_systems(OnEnter(AppState::InGame), draw_crosshair);
+        app.add_systems(OnEnter(AppState::Game), init_input)
+            .add_systems(Update, grab_cursor.after(DebugUISet::Display).run_if(in_state(AppState::Game)))
+            .add_systems(Update, handle_player_inputs.run_if(in_state(AppState::Game)))
+            .add_systems(OnEnter(AppState::Game), draw_crosshair);
         // app.add_startup_system(init_input)
         //     .add_system(grab_cursor.in_base_set(CoreSet::Update).after(DebugUISet::Display))
         //     .add_system(handle_player_inputs.in_base_set(CoreSet::Update));

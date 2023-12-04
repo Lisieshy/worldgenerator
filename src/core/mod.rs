@@ -1,5 +1,10 @@
+use bevy::prelude::*;
+
 /// Storage primitives for storing voxel data
 pub mod storage;
+
+/// Manages the asset collection of Bevy Asset Loader
+pub mod assets;
 
 /// Utils for managing a voxel world.
 mod world;
@@ -27,3 +32,16 @@ pub mod enums;
 /// Definition of a block and all of its properties.
 mod blocks;
 pub use blocks::*;
+
+pub mod schedule;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct CorePlugin;
+
+impl Plugin for CorePlugin {
+    fn build(&self, app: &mut App) {
+        schedule::configure(app);
+
+        // blocks::add_systems(app);
+    }
+}

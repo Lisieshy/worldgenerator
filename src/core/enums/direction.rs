@@ -14,7 +14,7 @@ pub enum Direction {
 
 impl From<IVec3> for Direction {
     fn from(value: IVec3) -> Self {
-        let [x, y, z] = value.into();
+        let [x, y, z]: [i32; 3] = value.into();
         match [x, y, z] {
             [0, 1, 0] => Direction::Up,
             [0, -1, 0] => Direction::Down,

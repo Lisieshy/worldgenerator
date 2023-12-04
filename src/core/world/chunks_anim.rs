@@ -3,7 +3,7 @@ use bevy::{prelude::{
         Query, RemovedComponents, SystemSet, Transform, Visibility, Update, PostUpdate,
     }, ecs::schedule::common_conditions::in_state};
 
-use crate::AppState;
+use crate::core::schedule::state::AppState;
 
 use super::{
     meshing::{ChunkMeshingSet, ChunkMeshingTask},
@@ -73,7 +73,7 @@ impl Plugin for ChunkAppearanceAnimatorPlugin {
             // (step_chunk_animation, attach_chunk_animation)
             (attach_chunk_animation)
                 .in_set(ChunkAppearanceAnimatorSet)
-                .run_if(in_state(AppState::InGame)),
+                .run_if(in_state(AppState::Game)),
         );
     }
 }

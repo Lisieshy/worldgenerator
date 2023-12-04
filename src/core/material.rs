@@ -1,10 +1,9 @@
 use bevy::{
-    log::info,
     prelude::{Color, Plugin, Resource},
-    utils::HashMap,
+    utils::HashMap, log::info,
 };
 use bitflags::bitflags;
-use std::{any::type_name, any::TypeId};
+use std::any::{TypeId, type_name};
 
 use super::Voxel;
 

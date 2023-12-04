@@ -1,7 +1,5 @@
 use bevy::{prelude::{App, AssetServer, Commands, Res, Resource, Startup}, ecs::schedule::{IntoSystemConfigs, common_conditions::in_state}};
 
-use crate::AppState;
-
 pub use self::{block::Blocks, state::BlockStates};
 
 pub mod block;
@@ -23,5 +21,5 @@ impl BlockData {
 }
 
 pub(super) fn add_systems(app: &mut App) {
-    app.add_systems(Startup, BlockData::create.distributive_run_if(in_state(AppState::InGame)));
+    app.add_systems(Startup, BlockData::create);
 }

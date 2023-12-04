@@ -1,7 +1,9 @@
 use super::{properties::BlockProperties, Block, BlocksMap};
+use bevy::log::info;
 
 macro_rules! register_block {
     ($blocks:expr, $block_id:expr, $block_states:expr, $name:expr, $properties:expr) => {
+        info!("block [{}] with id [{}] registered", $name, $block_id);
         $blocks.insert(
             $block_id,
             Block {
@@ -19,7 +21,7 @@ pub(super) fn create_blocks(blocks: &mut BlocksMap) {
         blocks,
         0u32,
         0u32..=0u32,
-        "air",
+        "Air",
         BlockProperties {
             collidable: false,
             opaque: false,
@@ -31,7 +33,7 @@ pub(super) fn create_blocks(blocks: &mut BlocksMap) {
         blocks,
         1u32,
         1u32..=1u32,
-        "stone",
+        "Stone",
         BlockProperties {
             ..Default::default()
         }
@@ -41,7 +43,7 @@ pub(super) fn create_blocks(blocks: &mut BlocksMap) {
         blocks,
         2u32,
         2u32..=2u32,
-        "dirt",
+        "Dirt",
         BlockProperties {
             ..Default::default()
         }
@@ -51,7 +53,7 @@ pub(super) fn create_blocks(blocks: &mut BlocksMap) {
         blocks,
         3u32,
         3u32..=4u32,
-        "grass_block",
+        "Grass Block",
         BlockProperties {
             ..Default::default()
         }

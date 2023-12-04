@@ -14,7 +14,7 @@ use bevy::{
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{core::material::VoxelMaterialRegistry, BlockTextures};
+use crate::core::{material::VoxelMaterialRegistry, assets::BlockTexturesAsset};
 
 // const MAX_TEXTURE_COUNT: usize = 15;
 const MAX_MATERIAL_COUNT: usize = 15;
@@ -208,7 +208,7 @@ fn update_chunk_material_singleton(
     chunk_material: ResMut<ChunkMaterialSingleton>,
     voxel_materials: Res<VoxelMaterialRegistry>,
     mut chunk_entities: Query<(Entity, &mut Handle<GpuTerrainMaterial>)>,
-    block_assets: Res<BlockTextures>,
+    block_assets: Res<BlockTexturesAsset>,
 ) {
     if chunk_material.is_changed() {
         // info!("Updating chunk material singleton.");
@@ -316,7 +316,13 @@ impl Plugin for ChunkMaterialPlugin {
             .add_systems(
                 Update,
                 update_chunk_material_singleton
-                    .run_if(resource_exists::<BlockTextures>().and_then(resource_changed::<VoxelMaterialRegistry>().and_then(not(resource_added::<VoxelMaterialRegistry>())))) // for some reason it's running every frame even if the resource didn't change.
+                    .run_if(
+                        resource_exists::<BlockTexturesAsset>()
+                        .and_then(resource_changed::<VoxelMaterialRegistry>()
+                        .and_then(
+                            not(resource_added::<VoxelMaterialRegistry>()))
+                        )
+                    ) // for some reason it's running every frame even if the resource didn't change.
                     .in_set(ChunkMaterialSet)
             );
     }

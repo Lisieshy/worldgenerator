@@ -9,7 +9,8 @@ use bevy::{
 use float_ord::FloatOrd;
 
 use super::{player::PlayerController, Chunk, ChunkShape, CHUNK_LENGTH};
-use crate::{core::storage::ChunkMap, AppState};
+use crate::core::storage::ChunkMap;
+use crate::core::schedule::state::AppState;
 use crate::core::Voxel;
 
 /// Gets the chunk for any given position.
@@ -241,15 +242,15 @@ impl Plugin for VoxelWorldChunkingPlugin {
             (update_player_pos, update_view_chunks, create_chunks)
                 .chain()
                 .in_set(ChunkLoadingSet)
-                .run_if(in_state(AppState::InGame)),
+                .run_if(in_state(AppState::Game)),
         )
         .add_systems(
             PostUpdate,
-            destroy_chunks.run_if(in_state(AppState::InGame))
+            destroy_chunks.run_if(in_state(AppState::Game))
         )
         .add_systems(
             Last,
-            clear_dirty_chunks.run_if(in_state(AppState::InGame))
+            clear_dirty_chunks.run_if(in_state(AppState::Game))
         );
     }
 }

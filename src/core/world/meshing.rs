@@ -5,10 +5,11 @@ use super::{
     terrain::{TerrainGenSet, save_chunk_to_disk},
     Chunk, ChunkShape, Voxel, CHUNK_LENGTH, CHUNK_HEIGHT, WorldSettings,
 };
-use crate::{core::{
+use crate::core::{
     render::{mesh_buffer, MeshBuffers, ChunkMaterialSingleton },
     storage::ChunkMap,
-}, AppState};
+    schedule::state::AppState,
+};
 use bevy::{
     prelude::*,
     render::{primitives::Aabb, render_resource::PrimitiveTopology },
@@ -130,7 +131,7 @@ impl Plugin for VoxelWorldMeshingPlugin {
             (prepare_chunks, queue_mesh_tasks, process_mesh_tasks)
                 .chain()
                 .in_set(ChunkMeshingSet)
-                .run_if(in_state(AppState::InGame)),
+                .run_if(in_state(AppState::Game)),
         );
     }
 }

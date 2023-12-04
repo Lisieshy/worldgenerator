@@ -13,11 +13,9 @@ use bevy::{
 };
 
 // use bevy_embedded_assets::EmbeddedAssetPlugin;
-use core::player::PlayerSettings;
+use core::{player::PlayerSettings, CorePlugin};
 
 use bevy::core_pipeline::fxaa::Fxaa;
-
-use bevy_asset_loader::prelude::*;
 
 use directories::BaseDirs;
 
@@ -25,12 +23,12 @@ mod systems;
 mod debug;
 mod core;
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-enum AppState {
-    #[default]
-    Loading,
-    InGame,
-}
+// #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+// enum AppState {
+//     #[default]
+//     Loading,
+//     InGame,
+// }
 
 
 fn main() {
@@ -67,12 +65,13 @@ fn main() {
             // TemporalAntiAliasPlugin,
             WireframePlugin,
         ))
-        .add_state::<AppState>()
-        .add_loading_state(
-            LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame),
-        )
-        .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
-        .add_collection_to_loading_state::<_, BlockTextures>(AppState::Loading)
+        // .add_state::<AppState>()
+        // .add_loading_state(
+        //     LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame),
+        // )
+        // .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
+        // .add_collection_to_loading_state::<_, BlockTexturesAsset>(AppState::Loading)
+        .add_plugins(CorePlugin)
         .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
@@ -134,46 +133,4 @@ fn setup(
         brightness: 1.0,
         ..Default::default()
     });
-}
-
-#[derive(AssetCollection, Resource)]
-struct MyAssets {
-    // #[asset(path = "textures/tiles", collection(typed))]
-    // tiles: Vec<Handle<Image>>,
-
-    #[asset(path = "textures/crosshair.png")]
-    crosshair: Handle<Image>,
-}
-
-
-#[derive(AssetCollection, Resource)]
-struct BlockTextures {
-    #[asset(path = "textures/blocks/0_void.png")]
-    void: Handle<Image>,
-    #[asset(path = "textures/blocks/bedrock.png")]
-    bedrock: Handle<Image>,
-    #[asset(path = "textures/blocks/stone.png")]
-    rock: Handle<Image>,
-    #[asset(path = "textures/blocks/dirt.png")]
-    dirt: Handle<Image>,
-    #[asset(path = "textures/blocks/sand.png")]
-    sand: Handle<Image>,
-    #[asset(path = "textures/blocks/grass_block_top.png")]
-    grass: Handle<Image>,
-    #[asset(path = "textures/blocks/snow.png")]
-    snow: Handle<Image>,
-    #[asset(path = "textures/blocks/water.png")]
-    water: Handle<Image>,
-    #[asset(path = "textures/blocks/sandstone_top.png")]
-    sandstone: Handle<Image>,
-    #[asset(path = "textures/blocks/cactus_top.png")]
-    cactus: Handle<Image>,
-    #[asset(path = "textures/blocks/oak_log.png")]
-    wood: Handle<Image>,
-    #[asset(path = "textures/blocks/oak_leaves.png")]
-    leaves: Handle<Image>,
-    #[asset(path = "textures/blocks/spruce_leaves.png")]
-    pineleaves: Handle<Image>,
-    #[asset(path = "textures/blocks/spruce_log.png")]
-    pinewood: Handle<Image>,
 }

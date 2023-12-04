@@ -14,11 +14,12 @@ use directories::BaseDirs;
 
 // use bevy_prototype_debug_lines::*;
 
-use crate::{core::{
+use crate::core::{
     material::{VoxelMaterialRegistry, VoxelMaterial}, ChunkCommandQueue, ChunkEntities, ChunkLoadRadius,
     CurrentLocalPlayerChunk, DirtyChunks,
     CHUNK_LENGTH, CHUNK_HEIGHT, player::{PlayerSettings, PlayerController}, terraingen::{self, noise::Heightmap}, CHUNK_LENGTH_U, WorldSettings, materials::Rock,
-}, AppState};
+    schedule::state::AppState,
+};
 
 fn display_debug_stats(mut egui: EguiContexts, diagnostics: Res<DiagnosticsStore>) {
     egui::Window::new("performance stuff").show(egui.ctx_mut(), |ui| {
@@ -437,11 +438,11 @@ impl Plugin for DebugUIPlugins {
             .add_systems(Update, (
                 toggle_debug_ui_displays
                     .in_set(DebugUISet::Toggle)
-                    .run_if(in_state(AppState::InGame)),
+                    .run_if(in_state(AppState::Game)),
                 display_material_editor
                     .in_set(DebugUISet::Display)
                     .run_if(display_mat_debug_ui_criteria)
-                    .run_if(in_state(AppState::InGame)),
+                    .run_if(in_state(AppState::Game)),
             ))
             .add_systems(
                 Update,
@@ -454,7 +455,7 @@ impl Plugin for DebugUIPlugins {
                 )
                     .in_set(DebugUISet::Display)
                     .distributive_run_if(display_debug_ui_criteria)
-                    .run_if(in_state(AppState::InGame)),
+                    .run_if(in_state(AppState::Game)),
             )
             .configure_sets(
                 Update,

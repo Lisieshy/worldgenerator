@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Handle, Mesh, Vec3},
+    prelude::{Handle, Mesh},
     render::primitives::Aabb,
 };
 

@@ -1,10 +1,10 @@
 use bevy::{prelude::{
     Color, Commands, DirectionalLight, DirectionalLightBundle, Plugin,
     Query, Res, Resource, Transform, Vec3, With, Update,
-}, ecs::{schedule::{OnEnter, IntoSystemConfigs, common_conditions::in_state}, component::Component, system::ResMut}, time::{Timer, TimerMode, Time}, math::Quat };
+}, ecs::{schedule::{OnEnter, IntoSystemConfigs}, component::Component, system::ResMut}, time::{Timer, TimerMode, Time}, math::Quat };
 use bevy_atmosphere::{model::AtmosphereModel, system_param::AtmosphereMut, collection::nishita::Nishita};
 
-use crate::AppState;
+use crate::core::schedule::{state::AppState, set::GameSet};
 
 // #[derive(Resource, Deref)]
 // pub struct SkyLightEntity(Entity);
@@ -116,7 +116,7 @@ impl Plugin for VoxelWorldSkyboxPlugin {
                 bevy::utils::Duration::ZERO,
                 TimerMode::Repeating,
             )))
-            .add_systems(OnEnter(AppState::InGame), setup_environment)
-            .add_systems(Update, (daylight_cycle).run_if(in_state(AppState::InGame)));
+            .add_systems(OnEnter(AppState::Game), setup_environment)
+            .add_systems(Update, (daylight_cycle).in_set(GameSet));
     }
 }
