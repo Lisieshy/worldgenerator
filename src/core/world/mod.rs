@@ -1,11 +1,10 @@
 use bevy::{
-    prelude::*,
     math::IVec3,
     prelude::{Component, Plugin}, ecs::system::Resource,
 };
 use ndshape::ConstShape3u32;
 
-use super::{storage::ChunkMap, terraingen, Voxel, blocks};
+use super::{storage::ChunkMap, terraingen, Voxel};
 
 /// Systems for dynamically loading / unloading regions (aka chunks) of the world according to camera position.
 mod chunks;
@@ -17,12 +16,10 @@ use bevy_vector_shapes::prelude::*;
 
 mod chunks_anim;
 pub mod materials;
-pub mod material;
 mod meshing;
 pub mod player;
 mod sky;
 mod terrain;
-
 
 #[derive(Resource)]
 pub struct WorldSettings {
@@ -35,7 +32,6 @@ pub struct VoxelWorldPlugin;
 
 impl Plugin for VoxelWorldPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        blocks::add_systems(app);
         app.insert_resource(ChunkMap::<Voxel, ChunkShape>::new(ChunkShape {}))
             .insert_resource(WorldSettings {
                 seed: 0,
@@ -60,13 +56,35 @@ impl Plugin for VoxelWorldPlugin {
 pub const CHUNK_LENGTH: u32 = 32;
 pub const CHUNK_HEIGHT: u32 = 256;
 pub const CHUNK_LENGTH_U: usize = CHUNK_LENGTH as usize;
+pub const SECTION_HEIGHT: u32 = 32;
+pub const SECTION_HEIGHT_U: usize = SECTION_HEIGHT as usize;
+pub const SECTION_COUNT: usize = CHUNK_HEIGHT as usize / SECTION_HEIGHT_U;
 pub type ChunkShape = ConstShape3u32<CHUNK_LENGTH, CHUNK_HEIGHT, CHUNK_LENGTH>;
+pub type SectionShape = ConstShape3u32<CHUNK_LENGTH, SECTION_HEIGHT, CHUNK_LENGTH>;
 
 // A component tagging an entity as a chunk.
 #[derive(Component)]
 pub struct Chunk(pub IVec3);
 
 
+pub mod material;
+pub mod structure;
+pub mod task;
+
+// pub const CHUNK_SIZE: usize = 32;
+// pub const CHUNK_HEIGHT: usize = 256;
+// pub const SECTION_HEIGHT: usize = 32;
+// pub const SECTION_COUNT: usize = CHUNK_HEIGHT / SECTION_HEIGHT;
+
+
+
+// #[derive(Debug, Default, Clone, Deref, DerefMut)]
+// pub struct World {
+//     #[deref]
+//     pub chunks: HashMap<ChunkPos, ChunkEntity>,
+// }
+
 pub(super) fn add_systems(app: &mut App) {
     material::setup(app);
+    task::setup(app);
 }

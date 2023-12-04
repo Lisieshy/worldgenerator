@@ -14,7 +14,9 @@ use bevy::{
 use bytemuck::{Pod, Zeroable};
 
 pub(super) fn setup(app: &mut App) {
-    app.add_plugins(MaterialPlugin::<BlockMaterial>::default());
+    app
+        .add_plugins(GpuFeatureSupportChecker)
+        .add_plugins(MaterialPlugin::<BlockMaterial>::default());
 }
 
 const MAX_TEXTURE_COUNT: usize = 48;
