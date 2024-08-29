@@ -15,9 +15,38 @@
 #import bevy_core_pipeline::tonemapping::tone_mapping
 
 #import "shaders/voxel_data.wgsl"::{voxel_data_extract_normal, voxel_data_extract_material_index}
-#import "shaders/terrain_uniforms.wgsl"::{VoxelMat, voxel_materials, color_texture, color_sampler, TERRAIN_CHUNK_LENGTH}
+// #import "shaders/terrain_uniforms.wgsl"::{VoxelMat, voxel_materials, color_texture, color_sampler, TERRAIN_CHUNK_LENGTH}
+// #import "shaders/terrain_uniforms.wgsl"::{VoxelMat, textures, nearest_sampler, TERRAIN_CHUNK_LENGTH}
 #import "shaders/noise.wgsl"::hash
 #import "shaders/fog.wgsl"::ffog_apply_fog
+
+const VOXEL_MAT_FLAG_LIQUID: u32 = 2u; // 1 << 1
+const TERRAIN_CHUNK_LENGTH: u32 = 32u;
+const MAX_MATERIAL_COUNT: u32 = 15u;
+
+struct VoxelMat {
+    // base_color_r: f32,
+    // base_color_g: f32,
+    // base_color_b: f32,
+    // base_color_a: f32,
+    flags: u32,
+    emissive_r: f32,
+    emissive_g: f32,
+    emissive_b: f32,
+    emissive_a: f32,
+    perceptual_roughness: f32,
+    metallic: f32,
+    reflectance: f32,
+};
+
+@group(1) @binding(0)
+var textures: binding_array<texture_2d<f32>>;
+
+@group(1) @binding(1)
+var nearest_sampler: sampler;
+
+@group(1) @binding(2)
+var<uniform> voxel_materials: array<VoxelMat, MAX_MATERIAL_COUNT>;
 
 struct Vertex {
     @builtin(instance_index) instance_index: u32,
@@ -42,13 +71,12 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     let world_position = bevy_pbr::mesh_functions::mesh_position_local_to_world(model, vec4<f32>(vertex.position, 1.0));
 
     var out: VertexOutput;
-    // let voxel_normal = voxel_data_extract_normal(vertex.voxel_data);
     out.clip_position = view_transformations::position_world_to_clip(world_position.xyz);
-    // out.voxel_normal = voxel_normal;
     out.normal = vertex.normal;
     out.voxel_data = vertex.voxel_data;
     out.world_position = world_position.xyz;
     out.instance_index = vertex.instance_index;
+    out.uv = vertex.uv;
 
     return out;
 }
@@ -66,19 +94,27 @@ struct Fragment {
     @location(4) uv: vec2<f32>,
 };
 
-fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, frag: Fragment) -> PbrInput {
-    var base_color: vec4<f32> = voxel_mat.base_color;
-    base_color = base_color + hash(vec4<f32>(floor(frag.world_position - frag.normal * 0.5), 1.0)) * 0.0226;
+fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, voxel_index: u32, frag: Fragment) -> PbrInput {
+    // var base_color: vec4<f32> = voxel_mat.base_color;
+    // base_color = base_color + hash(vec4<f32>(floor(frag.world_position - frag.normal * 0.5), 1.0)) * 0.0226;
 
 
     let voxel_world_normal = bevy_pbr::mesh_functions::mesh_normal_local_to_world(frag.normal, frag.instance_index);
 
     // var base_color: vec4<f32> = textureSample(color_texture, color_sampler, vec2<f32>(voxel_mat.base_color.r, 0.0)).rgba;
 
+    // let coords = clamp(vec2<u32>(in.uv), vec2<u32>(0u), vec2<u32>(0u));
+    // let index = coords.x;
+    let inner_uv = fract(frag.uv);
+    var base_color: vec4<f32> = textureSample(textures[voxel_index], nearest_sampler, inner_uv);
+
+    // base_color = base_color + vec4<f32>(voxel_mat.base_color, 1.0);
+
+
     var pbr_input: PbrInput = pbr_input_new();
     pbr_input.material.metallic = voxel_mat.metallic;
     pbr_input.material.perceptual_roughness = voxel_mat.perceptual_roughness;
-    pbr_input.material.emissive = voxel_mat.emissive;
+    pbr_input.material.emissive = vec4<f32>(voxel_mat.emissive_r, voxel_mat.emissive_g, voxel_mat.emissive_b, voxel_mat.emissive_a);
     pbr_input.material.reflectance = voxel_mat.reflectance;
     pbr_input.material.base_color = base_color;
 
@@ -95,14 +131,20 @@ fn prepare_pbr_input_from_voxel_mat(voxel_mat: VoxelMat, frag: Fragment) -> PbrI
 }
 
 @fragment
-fn fragment(frag: Fragment) -> @location(0) vec4<f32> {
-    let material = voxel_materials[voxel_data_extract_material_index(frag.voxel_data)];
+fn fragment(in: Fragment) -> @location(0) vec4<f32> {
+    let voxel_index = voxel_data_extract_material_index(in.voxel_data);
+    let voxel_mat = voxel_materials[voxel_index];
+    // let voxel_tex: texture_2d<f32> = textures[voxel_index];
 
     /// PBR lighting input data preparation
-    var pbr_input = prepare_pbr_input_from_voxel_mat(material, frag);
-    let pbr_colour = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
+    var pbr_input = prepare_pbr_input_from_voxel_mat(voxel_mat, voxel_index, in);
+    let pbr_color = tone_mapping(apply_pbr_lighting(pbr_input), view.color_grading);
 
-    return pbr_colour;
+    // return vec4<f32>(voxel_mat.base_color, 1.0);
+
+    return pbr_color;
+
+    // return vec4f(in.uv.x, in.uv.y, 1.0, 1.0);
 
     // return material.base_color;
 

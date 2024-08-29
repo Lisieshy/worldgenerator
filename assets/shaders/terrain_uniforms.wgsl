@@ -14,11 +14,14 @@ struct VoxelMat {
 // var<uniform> render_distance: u32;
 
 // A GPU-suited representation of voxel materials.
-@group(1) @binding(0)
-var<uniform> voxel_materials: array<VoxelMat, 256>;
+// @group(1) @binding(0)
+// var<uniform> voxel_materials: array<VoxelMat, 256>;
 
-@group(1) @binding(1)
-var color_texture: texture_2d<f32>;
+// @group(1) @binding(1)
+// var color_texture: texture_2d<f32>;
 
-@group(1) @binding(2)
-var color_sampler: sampler;
+// @group(1) @binding(2)
+// var color_sampler: sampler;
+
+@group(1) @binding(0) var textures: binding_array<texture_2d<f32>>;
+@group(1) @binding(1) var nearest_sampler: sampler;

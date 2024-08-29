@@ -1,13 +1,12 @@
 //
 // Layout of voxel information encoded into a single u32
 //
-//  00000000    00000000    00000000    00000000    
-//  XXXXXYYY    YYZZZZZ          NNN    MATERIAL
+//  00000000    00000000    00000000    00000000
+//  XXXXXYYY    YYZZZZZ     MATERIAL    MATERIAL
 //
 // X: X position
 // Y: Y position
 // Z: Z position
-// ^ all unused bits?
 // N: normal index in the VOXEL_NORMALS array
 // defined, but not used either
 // MATERIAL: material index in the palette
@@ -39,5 +38,5 @@ fn voxel_data_extract_normal(voxel_data: u32) -> vec3<f32> {
 
 // Extracts the material index from the encoded voxel data
 fn voxel_data_extract_material_index(voxel_data: u32) -> u32 {
-    return voxel_data & 255u;
+    return voxel_data & 65535u;
 }

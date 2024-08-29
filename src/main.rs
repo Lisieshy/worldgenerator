@@ -6,31 +6,29 @@
 
 use bevy::{
     prelude::*,
-    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin
+    diagnostic::FrameTimeDiagnosticsPlugin, render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin,
         // Diagnostics,
     // },
     // app::AppExit,
 };
 
 // use bevy_embedded_assets::EmbeddedAssetPlugin;
-use voxel::player::PlayerSettings;
+use core::{player::PlayerSettings, CorePlugin};
 
 use bevy::core_pipeline::fxaa::Fxaa;
-
-use bevy_asset_loader::prelude::*;
 
 use directories::BaseDirs;
 
 mod systems;
 mod debug;
-mod voxel;
+mod core;
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-enum AppState {
-    #[default]
-    Loading,
-    InGame,
-}
+// #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+// enum AppState {
+//     #[default]
+//     Loading,
+//     InGame,
+// }
 
 
 fn main() {
@@ -64,17 +62,20 @@ fn main() {
             //     watch_for_changes: true,
             //     ..default()
             // })
+            // TemporalAntiAliasPlugin,
             WireframePlugin,
         ))
-        .add_state::<AppState>()
-        .add_loading_state(
-            LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame),
-        )
-        .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
-        .init_resource::<PlayerSettings>()
+        // .add_state::<AppState>()
+        // .add_loading_state(
+        //     LoadingState::new(AppState::Loading).continue_to_state(AppState::InGame),
+        // )
+        // .add_collection_to_loading_state::<_, MyAssets>(AppState::Loading)
+        // .add_collection_to_loading_state::<_, BlockTexturesAsset>(AppState::Loading)
+        .add_plugins(CorePlugin)
+        // .init_resource::<PlayerSettings>()
         .add_plugins(FrameTimeDiagnosticsPlugin)
         // .add_plugin(ProgressPlugin::new(GameState::AssetLoading).continue_to(GameState::GameRunning))
-        .add_plugins(voxel::VoxelWorldPlugin)
+        .add_plugins(core::VoxelWorldPlugin)
         .add_plugins(debug::DebugUIPlugins)
         // .add_startup_system(setup_boot_screen)
         .add_systems(Startup, setup)
@@ -111,6 +112,7 @@ fn setup(
             ..Default::default()
         }),
         camera: Camera {
+            // hdr: true,
             order: 1,
             ..default()
         },
@@ -121,21 +123,14 @@ fn setup(
         transform: Transform::from_xyz(2.0, 180.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     })
-    .insert(voxel::player::PlayerController::default())
+    .insert(core::player::PlayerController::default())
+    // .insert(ScreenSpaceAmbientOcclusionBundle::default())
+    // .insert(TemporalAntiAliasBundle::default())
     .insert(Fxaa::default())
     .insert(bevy_atmosphere::plugin::AtmosphereCamera::default());
 
     cmds.insert_resource(AmbientLight {
-        color: Color::WHITE,
         brightness: 1.0,
+        ..Default::default()
     });
-}
-
-#[derive(AssetCollection, Resource)]
-struct MyAssets {
-    #[asset(path = "textures/uv_checker.png")]
-    uv_checkers: Handle<Image>,
-
-    #[asset(path = "textures/crosshair.png")]
-    crosshair: Handle<Image>,
 }
